@@ -3,7 +3,7 @@ package com.wade.ops.harmonius.crawler;
 /**
  * Copyright: (c) 2017 Asiainfo
  *
- * @description:
+ * @description: 主机对象
  * @version: v1.0
  * @author: steven.chow
  * @date: 2017/08/31
@@ -64,6 +64,6 @@ public class Host {
 
     @Override
     public String toString() {
-        return "host:" + host + ",user:" + user + ",pswd:" + pswd + ",path:" + path;
+        return "{host:" + host + ", user:" + user + ", pswd:" + pswd + ", path:" + path + "}";
     }
 }
