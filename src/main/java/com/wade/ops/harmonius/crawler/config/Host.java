@@ -1,4 +1,4 @@
-package com.wade.ops.harmonius.crawler;
+package com.wade.ops.harmonius.crawler.config;
 
 /**
  * Copyright: (c) 2017 Asiainfo
