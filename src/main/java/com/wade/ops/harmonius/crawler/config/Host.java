@@ -16,6 +16,11 @@ public class Host {
     private String host;
 
     /**
+     * 主机端口
+     */
+    private int port;
+
+    /**
      * 用户名
      */
     private String user;
@@ -30,20 +35,28 @@ public class Host {
      */
     private String path;
 
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
+
     public String getPath() {
         return path;
     }
 
     public void setPath(String path) {
         this.path = path;
-    }
-
-    public String getPswd() {
-        return pswd;
-    }
-
-    public void setPswd(String pswd) {
-        this.pswd = pswd;
     }
 
     public String getUser() {
@@ -54,16 +67,17 @@ public class Host {
         this.user = user;
     }
 
-    public String getHost() {
-        return host;
+    public String getPswd() {
+        return pswd;
     }
 
-    public void setHost(String host) {
-        this.host = host;
+    public void setPswd(String pswd) {
+        this.pswd = pswd;
     }
 
     @Override
     public String toString() {
-        return "{host:" + host + ", user:" + user + ", pswd:" + pswd + ", path:" + path + "}";
+        return "{host:" + host + ", port:" + port + ", user:" + user + ", pswd:" + pswd + ", path:" + path + "}";
     }
+
 }

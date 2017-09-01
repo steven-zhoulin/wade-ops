@@ -6,16 +6,31 @@ import java.util.List;
 /**
  * Copyright: (c) 2017 Asiainfo
  *
- * @description:
+ * @description: 主配置类对象
  * @version: v1.0
  * @author: steven.chow
  * @date: 2017/09/01
  */
 public class Config {
 
+    /**
+     * 默认超时时间
+     */
     private int defaultTimeout;
+
+    /**
+     * 默认端口
+     */
     private int defaultPort;
+
+    /**
+     * 默认密码
+     */
     private String defaultPswd;
+
+    /**
+     * 主机列表
+     */
     private List<Host> hosts = new ArrayList<Host>();
 
     public int getDefaultTimeout() {

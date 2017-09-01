@@ -2,9 +2,8 @@
   "defaultTimeout" : 5000,
   "defaultPort" : 22,
   "defaultPswd" : "123",
+
   "hosts": [
-    { "host": "192.168.114.128", "user": "zk", "pswd": "123", "path": "/home/zk/bomc" },
-    { "host": "192.168.114.129", "user": "zk", "pswd": "123", "path": "/home/zk/bomc" },
-    { "host": "192.168.114.130", "user": "zk", "pswd": "123", "path": "/home/zk/bomc" },
+    { "host": "192.168.114.128", "port": 22, "user": "zk", "pswd": "123", "path": "/home/zk/bomc" }
   ]
 }
