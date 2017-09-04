@@ -6,12 +6,16 @@ import java.util.List;
 /**
  * Copyright: (c) 2017 Asiainfo
  *
- * @description: 主配置类对象
- * @version: v1.0
- * @author: steven.chow
+ * @desc: 主配置类对象
+ * @auth: steven.zhou
  * @date: 2017/09/01
  */
 public class Config {
+
+    /**
+     * bomc文件基础目录
+     */
+    private String bomcBaseDirectory;
 
     /**
      * 爬取文件线程池大小, 默认:5
@@ -93,5 +97,13 @@ public class Config {
 
     public void setLoadingPoolsize(int loadingPoolsize) {
         this.loadingPoolsize = loadingPoolsize;
+    }
+
+    public String getBomcBaseDirectory() {
+        return bomcBaseDirectory;
+    }
+
+    public void setBomcBaseDirectory(String bomcBaseDirectory) {
+        this.bomcBaseDirectory = bomcBaseDirectory;
     }
 }

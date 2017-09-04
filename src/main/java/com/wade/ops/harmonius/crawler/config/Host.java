@@ -5,9 +5,8 @@ import com.wade.ops.harmonius.TripleDES;
 /**
  * Copyright: (c) 2017 Asiainfo
  *
- * @description: 主机对象
- * @version: v1.0
- * @author: steven.chow
+ * @desc: 主机对象
+ * @auth: steven.zhou
  * @date: 2017/08/31
  */
 public class Host {

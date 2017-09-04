@@ -20,7 +20,7 @@ import java.util.Vector;
  *
  * @description:
  * @version: v1.0
- * @author: steven.chow
+ * @author: steven.zhou
  * @date: 2017/09/01
  */
 class FileCrawler extends Thread {

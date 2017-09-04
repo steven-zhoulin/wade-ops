@@ -7,9 +7,8 @@ import javax.crypto.spec.SecretKeySpec;
 /**
  * Copyright: (c) 2017 Asiainfo
  *
- * @description:
- * @version: v1.0
- * @author: steven.chow
+ * @desc:
+ * @auth: steven.zhou
  * @date: 2017/09/01
  */
 public final class TripleDES {

@@ -1,4 +1,5 @@
 {
+  "bomcBaseDirectory": "D:/bomc/",
   "crawlerPoolsize": 5,
   "loadingPoolsize":5,
   "defaultTimeout" : 5000,
