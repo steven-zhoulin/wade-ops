@@ -1,9 +1,12 @@
 {
+  "crawlerPoolsize": 5,
+  "loadingPoolsize":5,
   "defaultTimeout" : 5000,
   "defaultPort" : 22,
   "defaultPswd" : "123",
 
   "hosts": [
-    { "host": "192.168.114.128", "port": 22, "user": "zk", "pswd": "123", "path": "/home/zk/bomc" }
+    { "host": "192.168.114.128", "port": 22, "user": "zk", "pswd": "{3DES}boDrO8W9Y+g=", "path": "/home/zk/bomc" },
+    { "host": "192.168.114.129", "port": 22, "user": "zk", "pswd": "{3DES}boDrO8W9Y+g=", "path": "/home/zk/bomc" }
   ]
 }

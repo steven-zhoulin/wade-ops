@@ -14,6 +14,16 @@ import java.util.List;
 public class Config {
 
     /**
+     * 爬取文件线程池大小, 默认:5
+     */
+    private int crawlerPoolsize = 5;
+
+    /**
+     * 加载文件线程池大小, 默认:5
+     */
+    private int loadingPoolsize = 5;
+
+    /**
      * 默认超时时间
      */
     private int defaultTimeout;
@@ -67,5 +77,21 @@ public class Config {
 
     public void addHost(Host host) {
         this.hosts.add(host);
+    }
+
+    public int getCrawlerPoolsize() {
+        return crawlerPoolsize;
+    }
+
+    public void setCrawlerPoolsize(int crawlerPoolsize) {
+        this.crawlerPoolsize = crawlerPoolsize;
+    }
+
+    public int getLoadingPoolsize() {
+        return loadingPoolsize;
+    }
+
+    public void setLoadingPoolsize(int loadingPoolsize) {
+        this.loadingPoolsize = loadingPoolsize;
     }
 }

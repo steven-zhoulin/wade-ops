@@ -1,5 +1,7 @@
 package com.wade.ops.harmonius.crawler.config;
 
+import com.wade.ops.harmonius.TripleDES;
+
 /**
  * Copyright: (c) 2017 Asiainfo
  *
@@ -72,7 +74,16 @@ public class Host {
     }
 
     public void setPswd(String pswd) {
-        this.pswd = pswd;
+
+        /**
+         * 如果为{3DES}密文则进行解密
+         */
+        if (pswd.startsWith("{3DES}")) {
+            this.pswd = TripleDES.decrypt(pswd.substring(6));
+        } else {
+            this.pswd = pswd;
+        }
+
     }
 
     @Override
