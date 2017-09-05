@@ -1,4 +1,4 @@
-package com.wade;
+package com.wade.ops.harmonius;
 
 import org.apache.commons.io.DirectoryWalker;
 

@@ -8,7 +8,7 @@ import java.io.FilenameFilter;
 /**
  * Copyright: (c) 2017 Asiainfo
  *
- * @desc:
+ * @desc: bomc日志文件过滤器
  * @auth: steven.zhou
  * @date: 2017/09/04
  */
@@ -24,9 +24,9 @@ public class BomcFileFilter implements FilenameFilter {
     public boolean accept(File dir, String filename) {
         if (filename.startsWith("bomc.") && filename.endsWith(timestamp + ".dat")) {
             return true;
-        } else {
-            return true;
         }
+
+        return false;
     }
 
 }

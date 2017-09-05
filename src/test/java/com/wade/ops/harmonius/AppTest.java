@@ -1,4 +1,4 @@
-package com.wade;
+package com.wade.ops.harmonius;
 
 import junit.framework.Test;
 import junit.framework.TestCase;

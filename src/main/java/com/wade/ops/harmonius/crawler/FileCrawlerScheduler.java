@@ -21,9 +21,10 @@ import java.util.concurrent.TimeUnit;
  * @auth: steven.zhou
  * @date: 2017/09/04
  */
-public class FileCrawlerScheduler {
+public class FileCrawlerScheduler extends Thread {
 
     private static final Log LOG = LogFactory.getLog(FileCrawlerScheduler.class);
+
     private ExecutorService executorService;
     private int crawlerPoolSize;
     private String timestamp = "";
@@ -32,11 +33,17 @@ public class FileCrawlerScheduler {
         this.crawlerPoolSize = crawlerPoolSize;
     }
 
-    public void doWork() throws Exception {
+    public void run() {
+
+
 
         while (true) {
 
-            Thread.sleep(1000 * 10);
+            try {
+                Thread.sleep(1000 * 10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
             // 只有在时间戳发生跳变的时候才开始新一轮的文件爬取工作
             if (Utils.previousOneCycle().equals(timestamp)) {
@@ -53,7 +60,9 @@ public class FileCrawlerScheduler {
                 Main.STATES.remove(Utils.timestamp(-10));
 
                 String directory = Utils.getBomcCurrDirectory();
-                FileUtils.forceMkdir(new File(directory));
+                File file = new File(directory);
+                FileUtils.deleteDirectory(file);
+                FileUtils.forceMkdir(file);
 
                 List<Host> hosts = Main.config.getHosts();
                 for (Host host : hosts) {

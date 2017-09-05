@@ -1,9 +1,28 @@
 <component name="ProjectDictionaryState">
   <dictionary name="Steven">
     <words>
+      <w>bizid</w>
+      <w>bomc</w>
       <w>bomcs</w>
+      <w>clientip</w>
+      <w>costtime</w>
+      <w>datasource</w>
+      <w>endtime</w>
+      <w>mainservice</w>
+      <w>menuid</w>
+      <w>operid</w>
+      <w>parentid</w>
+      <w>probetype</w>
       <w>pswd</w>
+      <w>rowkey</w>
+      <w>servername</w>
+      <w>servicename</w>
+      <w>sessionid</w>
+      <w>sqlname</w>
+      <w>starttime</w>
+      <w>statuscode</w>
       <w>successed</w>
+      <w>traceid</w>
       <w>zhou</w>
     </words>
   </dictionary>

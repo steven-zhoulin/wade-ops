@@ -16,7 +16,7 @@ import java.util.Map;
 /**
  * Copyright: (c) 2017 Asiainfo
  *
- * @desc:
+ * @desc: create 'bomc', 'info'
  * @auth: steven.zhou
  * @date: 2017/08/31
  */
@@ -51,20 +51,20 @@ public class Main {
         LOG.info("loading pool size: " + config.getLoadingPoolsize());
 
         FileCrawlerScheduler fileCrawlerScheduler = new FileCrawlerScheduler(config.getCrawlerPoolsize());
-        fileCrawlerScheduler.doWork();
+        fileCrawlerScheduler.start();
 
         FileLoaderScheduler fileLoaderScheduler = new FileLoaderScheduler(config.getLoadingPoolsize());
-        fileLoaderScheduler.doWork();
+        fileLoaderScheduler.start();
 
         // [OK] 获取当前时间戳的10分钟归属位置。
         // [OK] 读取web,app主机的地址、账号、密码、目录位置、文件特征标识。
         // 多线程到服务器上通过FTP或SFTP爬bomc.*.dat文件下来。
         // 支持一边爬文件下来，一边录入HBase
-        // 以时间戳建目录: .dat.crawling -> .dat -> .dat.loading -> .dat.history
+        // 以时间戳建目录: .dat.crawling -> .dat -> .dat.loading -> .dat.loaded
         // 按时间戳打包压缩处理，定时删除。
 
         // 仅用于测试
-        fileCrawlerScheduler.shutdown();
-        fileLoaderScheduler.shutdown();
+        //fileCrawlerScheduler.shutdown();
+        //fileLoaderScheduler.shutdown();
     }
 }

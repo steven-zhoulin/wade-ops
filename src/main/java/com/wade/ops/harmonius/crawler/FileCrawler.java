@@ -1,8 +1,6 @@
 package com.wade.ops.harmonius.crawler;
 
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.Session;
+import com.jcraft.jsch.*;
 import com.wade.ops.harmonius.Main;
 import com.wade.ops.harmonius.crawler.config.Host;
 import org.apache.commons.io.FileUtils;
@@ -11,6 +9,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.util.Properties;
 import java.util.Vector;
@@ -28,7 +27,6 @@ class FileCrawler extends Thread {
     private static final Log LOG = LogFactory.getLog(FileCrawler.class);
     private static final String CRLF = System.getProperty("line.separator");
 
-    private StringBuilder sb = new StringBuilder(1000);
     private Host host;
     private String timestamp;
     private String dstDir;
@@ -53,7 +51,7 @@ class FileCrawler extends Thread {
      *
      * @throws Exception
      */
-    private void crawlFilesBySftp() throws Exception {
+    private void crawlFilesBySftp() {
 
         int count = 0;
 
@@ -82,10 +80,7 @@ class FileCrawler extends Thread {
             channel.connect();
             channel.cd(path);
 
-            sb.append(CRLF).append(CRLF);
-            sb.append("Resource from " + host.getUser() + "@" + host.getHost() + ":" + host.getPath()).append(CRLF);
-
-            long begin = System.currentTimeMillis();
+            LOG.info("Resource from " + host.getUser() + "@" + host.getHost() + ":" + host.getPath());
 
             Vector bomcs = channel.ls("bomc.*" + timestamp + ".dat");
 
@@ -96,28 +91,34 @@ class FileCrawler extends Thread {
                     File file = new File(dstDir + "/" + fileName + ".crawling");
                     FileOutputStream fos = new FileOutputStream(file);
 
-                    long beg = System.currentTimeMillis();
+                    long begin = System.currentTimeMillis();
                     channel.get(fileName, fos);
-                    long cost = System.currentTimeMillis() - beg;
+                    long cost = System.currentTimeMillis() - begin;
 
                     IOUtils.closeQuietly(fos);
                     long size = FileUtils.sizeOf(file);
-                    sb.append(String.format("download %-45s %6d bytes cost %3s ms", fileName, size, cost)).append(CRLF);
+                    LOG.info(String.format("crawl %s@%s:%s/%-45s %6d bytes cost %3s ms", host.getUser(), host.getHost(), host.getPath(), fileName, size, cost));
                     file.renameTo(new File(dstDir + "/" + fileName));
                     count++;
                 }
             }
 
-            long cost = System.currentTimeMillis() - begin;
-            sb.append("---------------------------------------------------------------").append(CRLF);
-            sb.append("crawled file count: " + count + ", cost: " + cost + " ms").append(CRLF);
-            LOG.info(sb.toString());
+        } catch (JSchException e) {
+            e.printStackTrace();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (SftpException e) {
+            e.printStackTrace();
         } finally {
 
             if (null != channel) {
                 channel.quit();
                 channel.disconnect();
-                channel.getSession().disconnect();
+                try {
+                    channel.getSession().disconnect();
+                } catch (JSchException e) {
+                    e.printStackTrace();
+                }
             }
 
             if (null != session) {

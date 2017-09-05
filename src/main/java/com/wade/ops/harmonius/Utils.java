@@ -20,8 +20,8 @@ public final class Utils {
      */
     public static String getBomcCurrDirectory() {
         String bomcBaseDirectory = Main.config.getBomcBaseDirectory();
-        String bomcCurrDirectory = bomcBaseDirectory + File.separatorChar + previousOneCycle();
-        return bomcCurrDirectory;
+        String dirPath = bomcBaseDirectory + File.separatorChar + previousOneCycle();
+        return dirPath;
     }
 
     /**

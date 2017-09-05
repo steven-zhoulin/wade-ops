@@ -17,7 +17,7 @@ import java.util.concurrent.Executors;
  * @auth: steven.zhou
  * @date: 2017/09/04
  */
-public class FileLoaderScheduler {
+public class FileLoaderScheduler extends Thread {
 
     private static final Log LOG = LogFactory.getLog(FileLoaderScheduler.class);
 
@@ -27,7 +27,7 @@ public class FileLoaderScheduler {
         EXECUTE_SERVICE_LOADING = Executors.newFixedThreadPool(loaderPoolsize);
     }
 
-    public void doWork() {
+    public void run() {
 
         String directory = Utils.getBomcCurrDirectory();
         String timestamp = Utils.previousOneCycle();
@@ -53,13 +53,14 @@ public class FileLoaderScheduler {
 
                 timestamp = Utils.previousOneCycle();
 
-            } else {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
             }
+
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
         }
     }
 
