@@ -15,7 +15,7 @@ import java.io.IOException;
 public class Example {
     public static void main(String[] args) throws IOException {
         System.out.println("----------------------------------");
-        FileUtils.forceMkdir(new File("D:\\bomc"));
         System.out.println("----------------------------------");
+        System.out.println(TripleDES.decrypt("tsY0WGlMMac+6JKhtwDcZQ=="));
     }
 }
