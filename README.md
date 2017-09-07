@@ -1,10 +1,9 @@
-wade-ops is a operations framework.
+wade-ops 运维平台.
 
-It contains three key parts, which include:
+包括两个方面:
 
-* **Remoting**: a network communication framework providing sync-over-async and request-response messaging.
-* **Clustering**: a remote procedure call abstraction with load-balancing/failover/clustering capabilities.
-* **Registration**: a service directory framework for service registration and service event publish/subscription
+* **Crawling**: 负责从生产主机上bomc目录下爬取bomc*.dat文件。
+* **Loading**: 负责将爬取过来的文件加载进HBase。
 
 For more details, please refer to [dubbo.io](http://dubbo.io).
 
@@ -22,52 +21,17 @@ You’ll need a local copy of the example code to work through this quickstart. 
 ```sh
 $ cd ~
 $ # Clone the repository to get the source code.
-$ git clone https://github.com/alibaba/dubbo.git dubbo
+$ git clone https://github.com/steven-zhoulin/wade-ops.git
 $ git checkout master
-$ # or: git checkout -b dubbo-2.4.x
 ```
 #### Build & Run
 1. Build the whole sources use the following maven command
 
 ```sh
-$ cd ~/dubbo
+$ cd ~/wade-ops
 $ mvn clean install -Dmaven.test.skip
-$ # The demo code for this quickstart all stay in the `dubbo-demo` folder
-$ cd ./dubbo-demo
-$ ls
+$ mvn compile
+$ mvn jar
+$ cd ~/bin
+$ ./start-crawler.sh
 ```
-2. Run demo-provider. Start the provider and export service  
-```sh
-$ # Navigate to the provider part
-$ cd ~/dubbo/dubbo-demo/dubbo-demo-provider/target
-$ # unpack
-$ tar zxvf dubbo-demo-provider-2.5.4-SNAPSHOT-assembly.tar.gz
-$ cd dubbo-demo-provider-2.5.4-SNAPSHOT/bin
-$ ls
-```
-
-```sh
-$ # Start the provider
-$ ./start.sh
-```
-3. Run demo-consumer. Start the consumer and consume service provided by _the provider_ above
-
-```sh
-$ # Navigate to the consumer part
-$ cd ~/dubbo/dubbo-demo/dubbo-demo-consumer/target
-$ # unpack
-$ tar zxvf dubbo-demo-consumer-2.5.4-SNAPSHOT-assembly.tar.gz
-$ cd dubbo-demo-consumer-2.5.4-SNAPSHOT/bin
-$ ls
-```
-
-```sh
-$ ./start.sh
-```
-For a more detailed tutorial of this demo, click [here](http://dubbo.io/#quickstart)
-
-## Getting Help
-* Community
-* Releases
-* Contributors
-* Q&A
