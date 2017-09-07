@@ -1,6 +1,4 @@
-[![Build Status](https://travis-ci.org/alibaba/dubbo.svg?branch=master)](https://travis-ci.org/alibaba/dubbo) [![Gitter](https://badges.gitter.im/alibaba/dubbo.svg)](https://gitter.im/alibaba/dubbo?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
-
-Dubbo is a distributed, high performance RPC framework which empowers applications with service import/export capabilities.
+wade-ops is a operations framework.
 
 It contains three key parts, which include:
 
