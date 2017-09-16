@@ -14,6 +14,7 @@ public class Test {
 	public static void main(String[] args) throws Exception {
 		
 		ListFileWorker worker = new ListFileWorker();
+		// 123
 		
 		List<File> files = worker.list(new File("D:\\eclipse-workspace\\hello\\bomc"));
 		for (File file : files) {
@@ -33,7 +34,7 @@ public class Test {
 				}
 							
 			} catch (EOFException ee) {
-				System.out.println("�ļ������������!");
+				System.out.println("!");
 			} catch (Exception e) {
 				e.printStackTrace();
 			} finally {
@@ -49,6 +50,7 @@ public class Test {
 			List<File> files = new ArrayList<File>();
 			walk(directory, files);
 			return files;
+			// 123
 		}
 
 		@Override
@@ -57,6 +59,7 @@ public class Test {
 			if (!filename.startsWith("bomc.web")) {
 				return;
 			}
+			// 123
 			
 			if (filename.endsWith("11111240.dat")) {
 				results.add(file);
