@@ -3,10 +3,12 @@ package com.wade.ops.harmonius.loader;
 import com.wade.ops.harmonius.CrawlState;
 import com.wade.ops.harmonius.Main;
 import com.wade.ops.harmonius.Utils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -59,6 +61,16 @@ public class FileLoaderScheduler extends Thread {
                 Thread.sleep(5000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
+            }
+
+            File pre10 = new File(Utils.getBomcPre10Directory());
+            if (pre10.exists()) {
+                try {
+                    FileUtils.deleteDirectory(pre10);
+                    LOG.info("删除历史目录: " + pre10);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
 
         }

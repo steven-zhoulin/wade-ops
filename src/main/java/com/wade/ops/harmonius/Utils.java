@@ -24,15 +24,26 @@ public final class Utils {
         return dirPath;
     }
 
+    public static String getBomcPre10Directory() {
+        String bomcBaseDirectory = Main.config.getBomcBaseDirectory();
+        String dirPath = bomcBaseDirectory + File.separatorChar + timestamp(-10);
+        return dirPath;
+    }
+
     /**
      * 获取上一个周期的时间戳，格式: MMddHHm0
      *
      * @return
      */
     public static final String previousOneCycle() {
-        String timestamp = timestamp(-1);
-        //return previousOneCycle;
-        return "11111220";
+        String timestamp = Main.config.getTimestamp();
+        if (null != timestamp) {
+            return timestamp;
+        } else {
+            timestamp = timestamp(-1);
+            return timestamp;
+        }
+        //return "11111220";
     }
 
     /**

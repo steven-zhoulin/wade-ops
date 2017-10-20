@@ -62,6 +62,7 @@ public class FileLoader extends Thread {
         this.loading = new File(file.getAbsolutePath() + ".loading");
         this.loaded = new File(file.getAbsolutePath() + ".loaded");
         this.file.renameTo(this.loading);
+        LOG.info("loading... " + this.file.getName());
     }
 
     @Override
@@ -128,6 +129,7 @@ public class FileLoader extends Thread {
         } catch (ClassNotFoundException | IOException e) {
             e.printStackTrace();
         } finally {
+            HBaseUtils.flushCommits();
             try {
                 if (null != ois) {
                     ois.close();
@@ -184,7 +186,7 @@ public class FileLoader extends Thread {
         put.addColumn(FAMILY_INFO, COL_STATUSCODE, Bytes.toBytes(statuscode));
 
         HBaseUtils.put(put);
-        HBaseUtils.flushCommits();
+        //HBaseUtils.flushCommits();
 
     }
 
@@ -221,7 +223,7 @@ public class FileLoader extends Thread {
         put.addColumn(FAMILY_INFO, COL_MENUID, Bytes.toBytes(menuid));
 
         HBaseUtils.put(put);
-        HBaseUtils.flushCommits();
+        //HBaseUtils.flushCommits();
 
     }
 
@@ -246,7 +248,7 @@ public class FileLoader extends Thread {
         put.addColumn(FAMILY_INFO, COL_IP, Bytes.toBytes(ip));
 
         HBaseUtils.put(put);
-        HBaseUtils.flushCommits();
+        //HBaseUtils.flushCommits();
 
     }
 
@@ -271,7 +273,7 @@ public class FileLoader extends Thread {
         put.addColumn(FAMILY_INFO, COL_MAINSERVICE, Bytes.toBytes(mainservice));
 
         HBaseUtils.put(put);
-        HBaseUtils.flushCommits();
+        //HBaseUtils.flushCommits();
 
     }
 
@@ -298,7 +300,7 @@ public class FileLoader extends Thread {
         put.addColumn(FAMILY_INFO, COL_SQL, Bytes.toBytes(sql));
 
         HBaseUtils.put(put);
-        HBaseUtils.flushCommits();
+        //HBaseUtils.flushCommits();
     }
 
 }

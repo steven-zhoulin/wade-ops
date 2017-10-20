@@ -6,18 +6,9 @@ import com.wade.ops.harmonius.crawler.config.Config;
 import com.wade.ops.harmonius.loader.FileLoaderScheduler;
 import com.wade.ops.util.Bootstrap;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.security.CodeSource;
-import java.security.ProtectionDomain;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -56,8 +47,14 @@ public class Main {
 
         config = loadConfig();
 
+        /*
+        Test test = new Test();
+        test.run();
+        */
+
         System.out.println("crawler pool size: " + config.getCrawlerPoolsize());
         System.out.println("loading pool size: " + config.getLoadingPoolsize());
+        System.out.println("timestamp: " + config.getTimestamp());
 
         FileCrawlerScheduler fileCrawlerScheduler = new FileCrawlerScheduler(config.getCrawlerPoolsize());
         fileCrawlerScheduler.start();

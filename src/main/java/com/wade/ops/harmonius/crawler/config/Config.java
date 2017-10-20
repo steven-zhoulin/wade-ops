@@ -13,6 +13,11 @@ import java.util.List;
 public class Config {
 
     /**
+     * 按配置取指定后缀的bomc文件
+     */
+    private String timestamp;
+
+    /**
      * bomc文件基础目录
      */
     private String bomcBaseDirectory;
@@ -106,4 +111,13 @@ public class Config {
     public void setBomcBaseDirectory(String bomcBaseDirectory) {
         this.bomcBaseDirectory = bomcBaseDirectory;
     }
+
+    public String getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
+    }
+
 }
