@@ -41,16 +41,23 @@ public class FileLoaderScheduler extends Thread {
             if (CrawlState.BEGIN == state) {
                 LOG.info("loader work begin, previousOneCycle: " + timestamp + " " + directory);
 
-                for (File file : bomcDir.listFiles(new BomcFileFilter())) {
-                    FileLoader fileLoader = new FileLoader(file);
-                    EXECUTE_SERVICE_LOADING.execute(fileLoader);
+                File[] files = bomcDir.listFiles(new BomcFileFilter());
+                if (null != files) {
+                    for (File file : files) {
+                        FileLoader fileLoader = new FileLoader(file);
+                        EXECUTE_SERVICE_LOADING.execute(fileLoader);
+                    }
                 }
+
 
             } else if (CrawlState.END == state) {
 
-                for (File file : bomcDir.listFiles(new BomcFileFilter())) {
-                    FileLoader fileLoader = new FileLoader(file);
-                    EXECUTE_SERVICE_LOADING.execute(fileLoader);
+                File[] files = bomcDir.listFiles(new BomcFileFilter());
+                if (null != files) {
+                    for (File file : files) {
+                        FileLoader fileLoader = new FileLoader(file);
+                        EXECUTE_SERVICE_LOADING.execute(fileLoader);
+                    }
                 }
 
                 timestamp = Utils.previousOneCycle();

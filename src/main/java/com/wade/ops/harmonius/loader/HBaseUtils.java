@@ -21,13 +21,23 @@ public class HBaseUtils {
 
     private static final Configuration configuration = HBaseConfiguration.create();
     private static Connection connection = null;
-    private static HTable table = null;
+
+    private static HTable ht_trace = null;
+    private static HTable ht_trace_menu = null;
+    private static HTable ht_trace_operid = null;
 
     static {
         try {
+
             connection = ConnectionFactory.createConnection(configuration);
-            table = (HTable) connection.getTable(TableName.valueOf("bomc"));
-            table.setAutoFlushTo(false);
+            ht_trace = (HTable) connection.getTable(TableName.valueOf("trace"));
+            ht_trace_menu = (HTable) connection.getTable(TableName.valueOf("trace_menu"));
+            ht_trace_operid = (HTable) connection.getTable(TableName.valueOf("trace_operid"));
+
+            ht_trace.setAutoFlushTo(false);
+            ht_trace_menu.setAutoFlushTo(false);
+            ht_trace_operid.setAutoFlushTo(false);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -35,17 +45,49 @@ public class HBaseUtils {
 
     private HBaseUtils() {}
 
-    public static void put(Put put) {
+    public static void tracePut(Put put) {
         try {
-            table.put(put);
+            ht_trace.put(put);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public static void flushCommits() {
+    public static void traceMenuPut(Put put) {
         try {
-            table.flushCommits();
+            ht_trace_menu.put(put);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void traceOperidPut(Put put) {
+        try {
+            ht_trace_operid.put(put);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void traceFlushCommits() {
+        try {
+            ht_trace.flushCommits();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void traceMenuFlushCommits() {
+        try {
+            ht_trace_menu.flushCommits();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void traceOpenidFlushCommits() {
+        try {
+            ht_trace_operid.flushCommits();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -53,8 +95,13 @@ public class HBaseUtils {
 
     public static void commitAndClose() {
         try {
-            table.flushCommits();
-            table.close();
+            ht_trace.flushCommits();
+            ht_trace_menu.flushCommits();
+            ht_trace_operid.flushCommits();
+
+            ht_trace.close();
+            ht_trace_menu.close();
+            ht_trace_operid.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

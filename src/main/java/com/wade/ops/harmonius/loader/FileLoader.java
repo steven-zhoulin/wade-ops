@@ -8,15 +8,6 @@ import org.apache.hadoop.hbase.util.Bytes;
 import java.io.*;
 import java.util.Map;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.ConnectionFactory;
-import org.apache.hadoop.hbase.client.HTable;
-import org.apache.hadoop.hbase.client.Put;
-import org.apache.hadoop.hbase.util.Bytes;
-
 /**
  * Copyright: (c) 2017 Asiainfo
  *
@@ -27,6 +18,10 @@ import org.apache.hadoop.hbase.util.Bytes;
 public class FileLoader extends Thread {
 
     private static final Log LOG = LogFactory.getLog(FileLoader.class);
+
+    private static final byte[] NULL = new byte[0];
+    private static final byte[] CF_SPAN = Bytes.toBytes("span");
+    private static final byte[] CF_TID = Bytes.toBytes("tid");
 
     private static final byte[] FAMILY_INFO = Bytes.toBytes("info");
     private static final byte[] COL_TRACEID = Bytes.toBytes("traceid");
@@ -59,27 +54,22 @@ public class FileLoader extends Thread {
 
         // 文件加载任务一开始首先把文件名改掉，防止重复加载。
         this.file = file;
-        this.loading = new File(file.getAbsolutePath() + ".loading");
         this.loaded = new File(file.getAbsolutePath() + ".loaded");
+        this.loading = new File(file.getAbsolutePath() + ".loading");
         this.file.renameTo(this.loading);
-        LOG.info("loading... " + this.file.getName());
+        LOG.info("begin loading " + this.file.getName());
     }
 
     @Override
     public void run() {
         long begin = System.currentTimeMillis();
-
-        // 文件加载逻辑... start
         load();
-        // 文件加载逻辑... end
-
         long cost = System.currentTimeMillis() - begin;
 
         // 将处理完的文件改成历史文件
+        LOG.info(String.format("loaded %-70s cost: %5d ms", file.getAbsolutePath(), cost));
+        this.loading = new File(file.getAbsolutePath() + ".loading");
         loading.renameTo(loaded);
-
-        LOG.info(String.format("loading %-70s cost: %5d ms", file.getAbsolutePath(), cost));
-
     }
 
     private void load() {
@@ -94,42 +84,54 @@ public class FileLoader extends Thread {
 
             while (true) {
 
-                Map<String, Object> map;
+                Map<String, Object> span;
 
                 try {
-                    map = (Map<String, Object>) ois.readObject();
+                    span = (Map<String, Object>) ois.readObject();
                 } catch (EOFException e) {
-                    // 读到文件末尾, 正常!
-                    break;
+                    break; // 读到文件末尾, 正常!
                 }
 
-                BaseData baseData = loadBaseTraceData(map);
+                if (null == span) {
+                    continue;
+                }
+
+                String traceid = (String) span.get("traceid");
+                if (null != traceid) {
+                    loadTrace(span);
+                    loadTraceMenu(span);
+                    loadTraceOperid(span);
+                }
+
+                /*
+                BaseData baseData = loadBaseTraceData(span);
                 String probetype = baseData.getProbetype();
 
                 switch (probetype) {
                     case "browser":
-                        loadBrowserTraceData(map, baseData);
+                        loadBrowserTraceData(span, baseData);
                         break;
                     case "web":
-                        loadWebTraceData(map, baseData);
+                        loadWebTraceData(span, baseData);
                         break;
                     case "app":
-                        loadAppTraceData(map, baseData);
+                        loadAppTraceData(span, baseData);
                         break;
                     case "service":
-                        loadServiceTraceData(map, baseData);
+                        loadServiceTraceData(span, baseData);
                         break;
                     case "dao":
-                        loadDaoTraceData(map, baseData);
+                        loadDaoTraceData(span, baseData);
                         break;
                 }
-
+                */
             }
 
         } catch (ClassNotFoundException | IOException e) {
             e.printStackTrace();
         } finally {
-            HBaseUtils.flushCommits();
+            HBaseUtils.traceFlushCommits();
+            HBaseUtils.traceMenuFlushCommits();
             try {
                 if (null != ois) {
                     ois.close();
@@ -139,6 +141,70 @@ public class FileLoader extends Thread {
             }
         }
 
+    }
+
+    /**
+     * put 'trace', 'web-74138c1248e44ca5b1ac7991b7635711', 'span:browser|74138c1248e44ca5b1ac7991b7635711', byte[]
+     *
+     * @param span
+     */
+    private static void loadTrace(Map<String, Object> span) {
+
+        String traceid = (String) span.get("traceid");
+        String probetype = (String) span.get("probetype");
+        String id = (String) span.get("id");
+        byte[] data = new byte[0];
+
+        String rowkey = traceid;
+        String colname = probetype + "|" + id;
+
+        Put put = new Put(Bytes.toBytes(rowkey));
+        put.addColumn(CF_SPAN, Bytes.toBytes(colname), data);
+        HBaseUtils.tracePut(put);
+
+    }
+
+    /**
+     * put 'trace_menu', 'CRM0001^201710201430', 'tid:web-74138c1248e44ca5b1ac7991b7635711', ''
+     *
+     * @param span
+     */
+    private static void loadTraceMenu(Map<String, Object> span) {
+
+        String probetype = (String) span.get("probetype");
+
+        if (probetype.equals("web")) {
+            String traceid = (String) span.get("traceid");
+            String menuid = (String) span.get("menuid");
+            String starttime = (String) span.get("starttime");
+
+            String rowkey = menuid + "^" + starttime;
+            Put put = new Put(Bytes.toBytes(rowkey));
+            put.addColumn(CF_TID, Bytes.toBytes(traceid), NULL);
+            HBaseUtils.traceMenuPut(put);
+        }
+
+    }
+
+    /**
+     * put 'trace_operid', 'SUPERUSR^201710201430', 'tid:web-74138c1248e44ca5b1ac7991b7635711', ''
+     *
+     * @param span
+     */
+    private static void loadTraceOperid(Map<String, Object> span) {
+
+        String probetype = (String) span.get("probetype");
+
+        if (probetype.equals("app")) {
+
+            String traceid = (String) span.get("traceid");
+            String starttime = (String) span.get("starttime");
+            String servicename = (String) span.get("operid");
+            String rowkey = servicename + "^" + starttime;
+            Put put = new Put(Bytes.toBytes(rowkey));
+            put.addColumn(CF_TID, Bytes.toBytes(traceid), NULL);
+            HBaseUtils.traceOperidPut(put);
+        }
     }
 
     private BaseData loadBaseTraceData(Map<String, Object> map) throws IOException {
@@ -185,7 +251,7 @@ public class FileLoader extends Thread {
 
         put.addColumn(FAMILY_INFO, COL_STATUSCODE, Bytes.toBytes(statuscode));
 
-        HBaseUtils.put(put);
+        //HBaseUtils.put(put);
         //HBaseUtils.flushCommits();
 
     }
@@ -222,7 +288,7 @@ public class FileLoader extends Thread {
         put.addColumn(FAMILY_INFO, COL_URL, Bytes.toBytes(url));
         put.addColumn(FAMILY_INFO, COL_MENUID, Bytes.toBytes(menuid));
 
-        HBaseUtils.put(put);
+       // HBaseUtils.put(put);
         //HBaseUtils.flushCommits();
 
     }
@@ -247,7 +313,7 @@ public class FileLoader extends Thread {
         put.addColumn(FAMILY_INFO, COL_SERVERNAME, Bytes.toBytes(servername));
         put.addColumn(FAMILY_INFO, COL_IP, Bytes.toBytes(ip));
 
-        HBaseUtils.put(put);
+        //HBaseUtils.put(put);
         //HBaseUtils.flushCommits();
 
     }
@@ -272,7 +338,7 @@ public class FileLoader extends Thread {
         put.addColumn(FAMILY_INFO, COL_SERVICENAME, Bytes.toBytes(servicename));
         put.addColumn(FAMILY_INFO, COL_MAINSERVICE, Bytes.toBytes(mainservice));
 
-        HBaseUtils.put(put);
+        //HBaseUtils.put(put);
         //HBaseUtils.flushCommits();
 
     }
@@ -299,7 +365,7 @@ public class FileLoader extends Thread {
         put.addColumn(FAMILY_INFO, COL_SQLNAME, Bytes.toBytes(sqlname));
         put.addColumn(FAMILY_INFO, COL_SQL, Bytes.toBytes(sql));
 
-        HBaseUtils.put(put);
+        //HBaseUtils.put(put);
         //HBaseUtils.flushCommits();
     }
 

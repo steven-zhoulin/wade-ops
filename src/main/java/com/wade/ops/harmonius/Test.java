@@ -39,11 +39,11 @@ public class Test {
             put.addColumn(FAMILY_INFO, AGE, Bytes.toBytes("28"));
             put.addColumn(FAMILY_INFO, SALARY, Bytes.toBytes("12345"));
 
-            HBaseUtils.put(put);
+            //HBaseUtils.put(put);
             count++;
 
             if (0 == count % 1000) {
-                HBaseUtils.flushCommits();
+                //HBaseUtils.flushCommits();
                 LOG.info(String.format("共计插入: %-10d条记录!", count));
             }
         }
