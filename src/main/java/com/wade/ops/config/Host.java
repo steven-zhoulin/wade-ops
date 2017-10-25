@@ -1,6 +1,6 @@
 package com.wade.ops.config;
 
-import com.wade.ops.harmonius.TripleDES;
+import com.wade.ops.util.TripleDES;
 
 /**
  * Copyright: (c) 2017 Asiainfo
