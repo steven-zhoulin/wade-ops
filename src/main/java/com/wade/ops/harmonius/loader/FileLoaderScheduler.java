@@ -1,7 +1,7 @@
 package com.wade.ops.harmonius.loader;
 
 import com.wade.ops.harmonius.CrawlState;
-import com.wade.ops.harmonius.Main;
+import com.wade.ops.harmonius.OpsLoadMain;
 import com.wade.ops.harmonius.Utils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
@@ -38,7 +38,7 @@ public class FileLoaderScheduler extends Thread {
             String directory = Utils.getBomcCurrDirectory();
             File bomcDir = new File(directory);
 
-            CrawlState state = Main.STATES.get(timestamp);
+            CrawlState state = OpsLoadMain.STATES.get(timestamp);
             LOG.info("timestamp: " + timestamp + ", state: " + state);
             File[] files = bomcDir.listFiles(new BomcFileFilter());
             if (CrawlState.BEGIN == state) {
@@ -69,11 +69,11 @@ public class FileLoaderScheduler extends Thread {
                 e.printStackTrace();
             }
 
-            File pre10 = new File(Utils.getBomcPre10Directory());
-            if (pre10.exists()) {
+            File beRemovedDirectory = new File(Utils.beRemovedDirectory());
+            if (beRemovedDirectory.exists()) {
                 try {
-                    FileUtils.deleteDirectory(pre10);
-                    LOG.info("删除历史目录: " + pre10);
+                    FileUtils.deleteDirectory(beRemovedDirectory);
+                    LOG.info("删除历史目录: " + beRemovedDirectory);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

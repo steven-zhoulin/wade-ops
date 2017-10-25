@@ -1,7 +1,6 @@
 package com.wade.ops;
 
 import com.wade.ops.harmonius.loader.HBaseUtils;
-import com.wade.ops.util.DateUtil;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
@@ -41,9 +40,7 @@ public class ServiceMapAnalyse {
         timestamp -= (timestamp % 1000000);
         String now = Long.toString(timestamp).substring(0, 7);
 
-
-
-        //now = "15088446480";
+        now = "150";
         //     1508844648216
         Filter filter = new RowFilter(CompareFilter.CompareOp.EQUAL, new SubstringComparator("^" + now));
         scan.setFilter(filter);
@@ -51,8 +48,6 @@ public class ServiceMapAnalyse {
         ResultScanner rs = table.getScanner(scan);
         for (Result r : rs) {
             String rowkey = Bytes.toString(r.getRow());
-            System.out.println("rowkey: " + rowkey);
-
             // 这里需要通过时间戳过滤调一部分数据
 
             String tid = Bytes.toString(r.getValue(Bytes.toBytes("info"), Bytes.toBytes("tid")));

@@ -1,6 +1,6 @@
 package com.wade.ops.util;
 
-import com.wade.ops.harmonius.Main;
+import com.wade.ops.harmonius.OpsLoadMain;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -32,7 +32,7 @@ public class Bootstrap {
      */
     public void boot() throws Exception {
 
-        ProtectionDomain domain = Main.class.getProtectionDomain();
+        ProtectionDomain domain = OpsLoadMain.class.getProtectionDomain();
         CodeSource codeSource = domain.getCodeSource();
         URL loc = codeSource.getLocation();
 

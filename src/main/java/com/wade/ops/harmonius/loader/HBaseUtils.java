@@ -30,6 +30,7 @@ public class HBaseUtils {
     private static HTable ht_service_map = null;
 
     static {
+
         try {
 
             connection = ConnectionFactory.createConnection(configuration);

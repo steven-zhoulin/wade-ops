@@ -1,7 +1,7 @@
 package com.wade.ops.harmonius.crawler;
 
 import com.wade.ops.harmonius.CrawlState;
-import com.wade.ops.harmonius.Main;
+import com.wade.ops.harmonius.OpsLoadMain;
 import com.wade.ops.harmonius.Utils;
 import com.wade.ops.harmonius.crawler.config.Host;
 import org.apache.commons.io.FileUtils;
@@ -35,8 +35,6 @@ public class FileCrawlerScheduler extends Thread {
 
     public void run() {
 
-
-
         while (true) {
 
             try {
@@ -56,15 +54,15 @@ public class FileCrawlerScheduler extends Thread {
             try {
 
                 LOG.info("crawler work begin, previousOneCycle: " + timestamp);
-                Main.STATES.put(timestamp, CrawlState.BEGIN);
-                Main.STATES.remove(Utils.timestamp(-10));
+                OpsLoadMain.STATES.put(timestamp, CrawlState.BEGIN);
+                OpsLoadMain.STATES.remove(Utils.timestamp(-10));
 
                 String directory = Utils.getBomcCurrDirectory();
                 File file = new File(directory);
                 FileUtils.deleteDirectory(file);
                 FileUtils.forceMkdir(file);
 
-                List<Host> hosts = Main.config.getHosts();
+                List<Host> hosts = OpsLoadMain.config.getHosts();
                 for (Host host : hosts) {
                     FileCrawler fileCrawler = new FileCrawler(host, timestamp, directory);
                     executorService.execute(fileCrawler);
@@ -76,7 +74,7 @@ public class FileCrawlerScheduler extends Thread {
                 }
 
                 // 通知加载线程，本周期内crawl的工作做完了。
-                Main.STATES.put(timestamp, CrawlState.END);
+                OpsLoadMain.STATES.put(timestamp, CrawlState.END);
 
             } catch (Exception e) {
                 e.printStackTrace();

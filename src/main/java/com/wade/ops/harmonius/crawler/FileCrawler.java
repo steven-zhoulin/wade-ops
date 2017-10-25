@@ -1,7 +1,7 @@
 package com.wade.ops.harmonius.crawler;
 
 import com.jcraft.jsch.*;
-import com.wade.ops.harmonius.Main;
+import com.wade.ops.harmonius.OpsLoadMain;
 import com.wade.ops.harmonius.crawler.config.Host;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -59,7 +59,7 @@ class FileCrawler extends Thread {
         String user = host.getUser();
         int port = host.getPort();
         String path = host.getPath();
-        int timeout = Main.config.getDefaultTimeout();
+        int timeout = OpsLoadMain.config.getDefaultTimeout();
 
         Properties prop = new Properties();
         prop.put("StrictHostKeyChecking", "no");

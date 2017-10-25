@@ -19,14 +19,20 @@ public final class Utils {
      * @return
      */
     public static String getBomcCurrDirectory() {
-        String bomcBaseDirectory = Main.config.getBomcBaseDirectory();
+        String bomcBaseDirectory = OpsLoadMain.config.getBomcBaseDirectory();
         String dirPath = bomcBaseDirectory + File.separatorChar + previousOneCycle();
         return dirPath;
     }
 
-    public static String getBomcPre10Directory() {
-        String bomcBaseDirectory = Main.config.getBomcBaseDirectory();
-        String dirPath = bomcBaseDirectory + File.separatorChar + timestamp(-3);
+    /**
+     * 获取即将被删除的目录
+     *
+     * @return
+     */
+    public static String beRemovedDirectory() {
+        String bomcBaseDirectory = OpsLoadMain.config.getBomcBaseDirectory();
+        int backupIndex = OpsLoadMain.config.getBackupIndex();
+        String dirPath = bomcBaseDirectory + File.separatorChar + timestamp(0 - backupIndex);
         return dirPath;
     }
 
@@ -36,7 +42,7 @@ public final class Utils {
      * @return
      */
     public static final String previousOneCycle() {
-        String timestamp = Main.config.getTimestamp();
+        String timestamp = OpsLoadMain.config.getTimestamp();
         if (null != timestamp) {
             return timestamp;
         } else {

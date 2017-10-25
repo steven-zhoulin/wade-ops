@@ -33,6 +33,11 @@ public class Config {
     private int loadingPoolsize = 5;
 
     /**
+     * 备份数
+     */
+    private int backupIndex = 10;
+
+    /**
      * 默认超时时间
      */
     private int defaultTimeout;
@@ -102,6 +107,14 @@ public class Config {
 
     public void setLoadingPoolsize(int loadingPoolsize) {
         this.loadingPoolsize = loadingPoolsize;
+    }
+
+    public int getBackupIndex() {
+        return backupIndex;
+    }
+
+    public void setBackupIndex(int backupIndex) {
+        this.backupIndex = backupIndex;
     }
 
     public String getBomcBaseDirectory() {

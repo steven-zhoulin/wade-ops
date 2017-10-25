@@ -15,14 +15,13 @@ import java.util.Map;
 /**
  * Copyright: (c) 2017 Asiainfo
  *
- * @desc: create 'bomc', 'info'
+ * @desc: 数据加载主启动类
  * @auth: steven.zhou
  * @date: 2017/08/31
  */
-public class Main {
+public class OpsLoadMain {
 
     public static Config config = null;
-
     public static final Map<String, CrawlState> STATES = new HashMap<>();
 
     /**
@@ -33,13 +32,19 @@ public class Main {
     static Config loadConfig() throws IOException {
 
         System.out.println("loading configuration config.json...");
-        InputStream in = Main.class.getResourceAsStream("/config.json");
+        InputStream in = OpsLoadMain.class.getResourceAsStream("/config.json");
         byte[] data = IOUtils.toByteArray(in);
         String content = new String(data);
         return JSON.parseObject(content.trim(), Config.class);
 
     }
 
+    /**
+     * 以时间戳建目录: .dat.crawling -> .dat -> .dat.loading -> .dat.loaded
+     *
+     * @param args
+     * @throws Exception
+     */
     public static void main(String[] args) throws Exception {
 
         Bootstrap bootstrap = new Bootstrap();
@@ -47,13 +52,9 @@ public class Main {
 
         config = loadConfig();
 
-        /*
-        Test test = new Test();
-        test.run();
-        */
-
         System.out.println("crawler pool size: " + config.getCrawlerPoolsize());
         System.out.println("loading pool size: " + config.getLoadingPoolsize());
+        System.out.println("backupIndex: " + config.getBackupIndex());
         System.out.println("timestamp: " + config.getTimestamp());
 
         FileCrawlerScheduler fileCrawlerScheduler = new FileCrawlerScheduler(config.getCrawlerPoolsize());
@@ -62,15 +63,5 @@ public class Main {
         FileLoaderScheduler fileLoaderScheduler = new FileLoaderScheduler(config.getLoadingPoolsize());
         fileLoaderScheduler.start();
 
-        // [OK] 获取当前时间戳的10分钟归属位置。
-        // [OK] 读取web,app主机的地址、账号、密码、目录位置、文件特征标识。
-        // 多线程到服务器上通过FTP或SFTP爬bomc.*.dat文件下来。
-        // 支持一边爬文件下来，一边录入HBase
-        // 以时间戳建目录: .dat.crawling -> .dat -> .dat.loading -> .dat.loaded
-        // 按时间戳打包压缩处理，定时删除。
-
-        // 仅用于测试
-        //fileCrawlerScheduler.shutdown();
-        //fileLoaderScheduler.shutdown();
     }
 }
