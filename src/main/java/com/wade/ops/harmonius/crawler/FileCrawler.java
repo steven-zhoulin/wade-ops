@@ -2,7 +2,7 @@ package com.wade.ops.harmonius.crawler;
 
 import com.jcraft.jsch.*;
 import com.wade.ops.harmonius.OpsLoadMain;
-import com.wade.ops.harmonius.crawler.config.Host;
+import com.wade.ops.config.Host;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;

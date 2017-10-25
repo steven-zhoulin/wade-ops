@@ -1,4 +1,4 @@
-package com.wade.ops.harmonius.crawler.config;
+package com.wade.ops.config;
 
 import java.util.ArrayList;
 import java.util.List;
