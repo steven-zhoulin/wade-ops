@@ -1,5 +1,6 @@
-package com.wade.ops;
+package com.wade.ops.harmonius;
 
+import com.wade.ops.OpsHBaseAPI;
 import com.wade.ops.harmonius.loader.HBaseUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.hadoop.hbase.TableName;
@@ -16,7 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ServiceMapAnalyse {
+public class AnalyseMain {
 
     private static final byte[] CF_RELAT = Bytes.toBytes("relat");
     private static final byte[] COL_POSITIVE = Bytes.toBytes("positive");
@@ -135,7 +136,7 @@ public class ServiceMapAnalyse {
 
     public static void main(String[] args) throws Exception {
 
-        ServiceMapAnalyse serviceMapAnalyse = new ServiceMapAnalyse();
+        AnalyseMain serviceMapAnalyse = new AnalyseMain();
         Map<String, String> map = serviceMapAnalyse.extractAnalyseMenu();
         serviceMapAnalyse.analyseServiceRelation(map);
 
