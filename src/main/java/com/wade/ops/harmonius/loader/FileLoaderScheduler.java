@@ -31,17 +31,18 @@ public class FileLoaderScheduler extends Thread {
 
     public void run() {
 
-        String directory = Utils.getBomcCurrDirectory();
         String timestamp = Utils.previousOneCycle();
-        File bomcDir = new File(directory);
 
         while (true) {
 
-            CrawlState state = Main.STATES.get(timestamp);
-            if (CrawlState.BEGIN == state) {
-                LOG.info("loader work begin, previousOneCycle: " + timestamp + " " + directory);
+            String directory = Utils.getBomcCurrDirectory();
+            File bomcDir = new File(directory);
 
-                File[] files = bomcDir.listFiles(new BomcFileFilter());
+            CrawlState state = Main.STATES.get(timestamp);
+            LOG.info("timestamp: " + timestamp + ", state: " + state);
+            File[] files = bomcDir.listFiles(new BomcFileFilter());
+            if (CrawlState.BEGIN == state) {
+
                 if (null != files) {
                     for (File file : files) {
                         FileLoader fileLoader = new FileLoader(file);
@@ -49,10 +50,8 @@ public class FileLoaderScheduler extends Thread {
                     }
                 }
 
-
             } else if (CrawlState.END == state) {
 
-                File[] files = bomcDir.listFiles(new BomcFileFilter());
                 if (null != files) {
                     for (File file : files) {
                         FileLoader fileLoader = new FileLoader(file);

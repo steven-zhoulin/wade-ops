@@ -8,5 +8,5 @@ package com.wade.ops.harmonius;
  * @date: 2017/09/04
  */
 public enum CrawlState {
-    BEGIN,END;
+    BEGIN,END
 }

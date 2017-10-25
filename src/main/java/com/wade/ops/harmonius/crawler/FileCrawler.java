@@ -97,7 +97,7 @@ class FileCrawler extends Thread {
 
                     IOUtils.closeQuietly(fos);
                     long size = FileUtils.sizeOf(file);
-                    LOG.info(String.format("crawl %s@%s:%s/%-45s %6d bytes cost %3s ms", host.getUser(), host.getHost(), host.getPath(), fileName, size, cost));
+                    //LOG.info(String.format("crawl %s@%s:%s/%-45s %6d bytes cost %3s ms", host.getUser(), host.getHost(), host.getPath(), fileName, size, cost));
                     file.renameTo(new File(dstDir + "/" + fileName));
                     count++;
                 }

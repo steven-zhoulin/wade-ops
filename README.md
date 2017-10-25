@@ -43,69 +43,69 @@ put 'trace', 'web-74138c1248e44ca5b1ac7991b7635711', 'span:dao|74138c1248e44ca5b
 #### trace_menu (需要准实时入HBase, menuid只有prototype=web才有, 难度系数:低)
 ```sql
 -- 建表语句:
-create 'trace_menu', 'tid'
-alter  'trace_menu', {NAME => 'tid', TTL => '259200'}
+create 'trace_menu', 'info'
+alter  'trace_menu', {NAME => 'info', TTL => '259200'}
 ```
 
 ```sql
 -- 表示例: 
-        表名                  rowkey                        colname                   value
-put 'trace_menu', 'CRM0001^201710201430', 'tid:web-74138c1248e44ca5b1ac7991b7635711', ''
-put 'trace_menu', 'CRM0001^201710201430', 'tid:web-74138c1248e44ca5b1ac7991b7635712', ''
-put 'trace_menu', 'CRM0001^201710201430', 'tid:web-74138c1248e44ca5b1ac7991b7635713', ''
-put 'trace_menu', 'CRM0001^201710201430', 'tid:web-74138c1248e44ca5b1ac7991b7635714', ''
-put 'trace_menu', 'CRM0001^201710201430', 'tid:web-74138c1248e44ca5b1ac7991b7635715', ''
-```
-
-#### trace_sn (需要准实时入HBase, 采用: 13007318123^201710201430 -> web-74138c1248e44ca5b1ac7991b7635711, 难度系数: 一般，整个时间片入完后再一次性插入！)
-```sql
--- 建表语句:
-create 'trace_sn', 'tid'
-alter  'trace_sn', {NAME => 'tid', TTL => '259200'}
-```
-
-```sql
--- 表示例: 
-        表名                  rowkey                           colname                 value
-put 'trace_sn', '13007318123^201710201430', 'tid:web-74138c1248e44ca5b1ac7991b7635711', ''
-put 'trace_sn', '13007318123^201710201430', 'tid:web-74138c1248e44ca5b1ac7991b7635712', ''
-put 'trace_sn', '13007318123^201710201430', 'tid:web-74138c1248e44ca5b1ac7991b7635713', ''
-put 'trace_sn', '13007318123^201710201430', 'tid:web-74138c1248e44ca5b1ac7991b7635714', ''
-put 'trace_sn', '13007318123^201710201430', 'tid:web-74138c1248e44ca5b1ac7991b7635715', ''
+        表名               rowkey                       'info:tid'                 
+put 'trace_menu', 'CRM0001^1508729999000', 'web-74138c1248e44ca5b1ac7991b7635711'
+put 'trace_menu', 'CRM0001^1508729999001', 'web-74138c1248e44ca5b1ac7991b7635712'
+put 'trace_menu', 'CRM0001^1508729999002', 'web-74138c1248e44ca5b1ac7991b7635713'
+put 'trace_menu', 'CRM0001^1508729999003', 'web-74138c1248e44ca5b1ac7991b7635714'
+put 'trace_menu', 'CRM0001^1508729999004', 'web-74138c1248e44ca5b1ac7991b7635715'
 ```
 
 #### trace_operid (需要准实时入HBase，采用: )
 ```sql
 -- 建表语句:
-create 'trace_operid', 'tid'
-alter  'trace_operid', {NAME => 'tid', TTL => '259200'}
+create 'trace_operid', 'info'
+alter  'trace_operid', {NAME => 'info', TTL => '259200'}
 ```
 
 ```sql
 -- 表示例: 
-        表名                  rowkey                           colname                 value
-put 'trace_operid', 'SUPERUSR^201710201430', 'tid:web-74138c1248e44ca5b1ac7991b7635711', ''
-put 'trace_operid', 'SUPERUSR^201710201430', 'tid:web-74138c1248e44ca5b1ac7991b7635712', ''
-put 'trace_operid', 'SUPERUSR^201710201430', 'tid:web-74138c1248e44ca5b1ac7991b7635713', ''
-put 'trace_operid', 'SUPERUSR^201710201430', 'tid:web-74138c1248e44ca5b1ac7991b7635714', ''
-put 'trace_operid', 'SUPERUSR^201710201430', 'tid:web-74138c1248e44ca5b1ac7991b7635715', ''
+        表名                  rowkey           colname                 value
+put 'trace_operid', 'SUPERUSR^201710201430', 'info:tid', 'tid:web-74138c1248e44ca5b1ac7991b7635711'
+put 'trace_operid', 'SUPERUSR^201710201430', 'info:tid', 'tid:web-74138c1248e44ca5b1ac7991b7635712'
+put 'trace_operid', 'SUPERUSR^201710201430', 'info:tid', 'tid:web-74138c1248e44ca5b1ac7991b7635713'
+put 'trace_operid', 'SUPERUSR^201710201430', 'info:tid', 'tid:web-74138c1248e44ca5b1ac7991b7635714'
+put 'trace_operid', 'SUPERUSR^201710201430', 'info:tid', 'tid:web-74138c1248e44ca5b1ac7991b7635715'
+```
+
+#### trace_sn (需要准实时入HBase, 采用: 13007318123^201710201430 -> web-74138c1248e44ca5b1ac7991b7635711, 难度系数: 一般，整个时间片入完后再一次性插入！)
+```sql
+-- 建表语句:
+create 'trace_sn', 'info'
+alter  'trace_sn', {NAME => 'info', TTL => '259200'}
+```
+
+```sql
+-- 表示例: 
+        表名                  rowkey          colname                 value
+put 'trace_sn', '13007318123^201710201430', 'info:tid', 'tid:web-74138c1248e44ca5b1ac7991b7635711'
+put 'trace_sn', '13007318123^201710201430', 'info:tid', 'tid:web-74138c1248e44ca5b1ac7991b7635712'
+put 'trace_sn', '13007318123^201710201430', 'info:tid', 'tid:web-74138c1248e44ca5b1ac7991b7635713'
+put 'trace_sn', '13007318123^201710201430', 'info:tid', 'tid:web-74138c1248e44ca5b1ac7991b7635714'
+put 'trace_sn', '13007318123^201710201430', 'info:tid', 'tid:web-74138c1248e44ca5b1ac7991b7635715'
 ```
 
 #### trace_service
 ```sql
 -- 建表语句：
-create 'trace_service', 'tid'
-alter  'trace_service', {NAME => 'tid', TTL => '259200'}
+create 'trace_service', 'info'
+alter  'trace_service', {NAME => 'info', TTL => '259200'}
 ```
 
 ```sql
 -- 表示例: 
-        表名                  rowkey                           colname                   value
-put 'trace_service', 'SVCNAME1^201710201430', 'tid:web-74138c1248e44ca5b1ac7991b7635711', ''
-put 'trace_service', 'SVCNAME1^201710201430', 'tid:web-74138c1248e44ca5b1ac7991b7635712', ''
-put 'trace_service', 'SVCNAME1^201710201430', 'tid:web-74138c1248e44ca5b1ac7991b7635713', ''
-put 'trace_service', 'SVCNAME1^201710201430', 'tid:web-74138c1248e44ca5b1ac7991b7635714', ''
-put 'trace_service', 'SVCNAME1^201710201430', 'tid:web-74138c1248e44ca5b1ac7991b7635715', ''
+        表名                  rowkey            colname                   value
+put 'trace_service', 'SVCNAME1^201710201430', 'info:tid', 'tid:web-74138c1248e44ca5b1ac7991b7635711'
+put 'trace_service', 'SVCNAME1^201710201430', 'info:tid', 'tid:web-74138c1248e44ca5b1ac7991b7635712'
+put 'trace_service', 'SVCNAME1^201710201430', 'info:tid', 'tid:web-74138c1248e44ca5b1ac7991b7635713'
+put 'trace_service', 'SVCNAME1^201710201430', 'info:tid', 'tid:web-74138c1248e44ca5b1ac7991b7635714'
+put 'trace_service', 'SVCNAME1^201710201430', 'info:tid', 'tid:web-74138c1248e44ca5b1ac7991b7635715'
 ```
 
 
@@ -113,15 +113,28 @@ put 'trace_service', 'SVCNAME1^201710201430', 'tid:web-74138c1248e44ca5b1ac7991b
 ```sql
 -- 建表语句:
 create 'service_map', 'relat'
-alter  'service_map', {NAME => 'direct', TTL => '259200'}
+alter  'service_map', {NAME => 'relat', TTL => '259200'}
 ```
 
 ```sql
 -- 示例:
-        表名          rowkey                   colname            value
-put 'service_map', 'servicename0^20171020', 'relat:servicename1', ''
-put 'service_map', 'servicename0^20171020', 'relat:servicename1', ''
-put 'service_map', 'servicename0^20171020', 'relat:servicename1', ''
-put 'service_map', 'servicename0^20171020', 'relat:servicename1', ''
-put 'service_map', 'servicename0^20171020', 'relat:servicename1', ''
+        表名               rowkey           relat:positive   'relat:reverse'     
+put 'service_map', 'servicename0^20171020', 'servicename1', 'servicename9'
+put 'service_map', 'servicename0^20171020', 'servicename2', 'servicename3'
+put 'service_map', 'servicename0^20171020', 'servicename3', 'servicename1'
+put 'service_map', 'servicename0^20171020', 'servicename4', 'servicename2'
+put 'service_map', 'servicename0^20171020', 'servicename5', 'servicename7'
+```
+
+#### service_map_menu 服务菜单地图，从服务依赖关系，找到对应的菜单。
+```sql
+create 'service_map_menu', 'relat'
+alter  'service_map_menu', {NAME => 'relat', TTL => '25920'}
+```
+
+```sql
+-- 示例:
+put 'service_map_menu', 'servicename0^servicename1^20171020^BIL0011', 'relat:menu', ''
+put 'service_map_menu', 'servicename0^servicename1^20171020^BIL0012', 'relat:menu', ''
+put 'service_map_menu', 'servicename0^servicename2^20171020^BIL0011', 'relat:menu', ''
 ```

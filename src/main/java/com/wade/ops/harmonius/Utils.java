@@ -26,7 +26,7 @@ public final class Utils {
 
     public static String getBomcPre10Directory() {
         String bomcBaseDirectory = Main.config.getBomcBaseDirectory();
-        String dirPath = bomcBaseDirectory + File.separatorChar + timestamp(-10);
+        String dirPath = bomcBaseDirectory + File.separatorChar + timestamp(-3);
         return dirPath;
     }
 

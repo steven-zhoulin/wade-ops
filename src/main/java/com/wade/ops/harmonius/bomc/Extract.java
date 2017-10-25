@@ -143,8 +143,7 @@ public class Extract {
 	private static void display(Map<String, IProbe> map) {
 		
 		Map<String, List<IProbe>> tree = new HashMap<String, List<IProbe>>();
-		
-		// �ҵ�root�ڵ�
+
 		IProbe root = null;
 		for (String id : map.keySet()) {
 			IProbe probe = map.get(id);
