@@ -2,7 +2,7 @@ package com.wade.ops.harmonius.loader;
 
 import com.wade.ops.harmonius.CrawlState;
 import com.wade.ops.harmonius.OpsLoadMain;
-import com.wade.ops.harmonius.Utils;
+import com.wade.ops.util.DateUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -31,11 +31,11 @@ public class FileLoaderScheduler extends Thread {
 
     public void run() {
 
-        String timestamp = Utils.previousOneCycle();
+        String timestamp = DateUtil.previousOneCycle();
 
         while (true) {
 
-            String directory = Utils.getBomcCurrDirectory();
+            String directory = DateUtil.currentBomcDirectory();
             File bomcDir = new File(directory);
 
             CrawlState state = OpsLoadMain.STATES.get(timestamp);
@@ -59,7 +59,7 @@ public class FileLoaderScheduler extends Thread {
                     }
                 }
 
-                timestamp = Utils.previousOneCycle();
+                timestamp = DateUtil.previousOneCycle();
 
             }
 
@@ -69,7 +69,7 @@ public class FileLoaderScheduler extends Thread {
                 e.printStackTrace();
             }
 
-            File beRemovedDirectory = new File(Utils.beRemovedDirectory());
+            File beRemovedDirectory = new File(DateUtil.beRemovedDirectory());
             if (beRemovedDirectory.exists()) {
                 try {
                     FileUtils.deleteDirectory(beRemovedDirectory);

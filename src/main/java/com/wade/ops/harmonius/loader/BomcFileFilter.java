@@ -1,6 +1,6 @@
 package com.wade.ops.harmonius.loader;
 
-import com.wade.ops.harmonius.Utils;
+import com.wade.ops.util.DateUtil;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -17,7 +17,7 @@ public class BomcFileFilter implements FilenameFilter {
     private String timestamp;
 
     public BomcFileFilter() {
-        this.timestamp = Utils.previousOneCycle();
+        this.timestamp = DateUtil.previousOneCycle();
     }
 
     @Override

@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.wade.ops.harmonius.crawler.FileCrawlerScheduler;
 import com.wade.ops.config.Config;
 import com.wade.ops.harmonius.loader.FileLoaderScheduler;
-import com.wade.ops.util.Bootstrap;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;

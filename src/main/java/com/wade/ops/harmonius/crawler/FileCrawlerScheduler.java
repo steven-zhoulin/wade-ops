@@ -2,8 +2,8 @@ package com.wade.ops.harmonius.crawler;
 
 import com.wade.ops.harmonius.CrawlState;
 import com.wade.ops.harmonius.OpsLoadMain;
-import com.wade.ops.harmonius.Utils;
 import com.wade.ops.config.Host;
+import com.wade.ops.util.DateUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -44,10 +44,10 @@ public class FileCrawlerScheduler extends Thread {
             }
 
             // 只有在时间戳发生跳变的时候才开始新一轮的文件爬取工作
-            if (Utils.previousOneCycle().equals(timestamp)) {
+            if (DateUtil.previousOneCycle().equals(timestamp)) {
                 continue;
             } else {
-                timestamp = Utils.previousOneCycle();
+                timestamp = DateUtil.previousOneCycle();
                 executorService = Executors.newFixedThreadPool(crawlerPoolSize);
             }
 
@@ -55,9 +55,9 @@ public class FileCrawlerScheduler extends Thread {
 
                 LOG.info("crawler work begin, previousOneCycle: " + timestamp);
                 OpsLoadMain.STATES.put(timestamp, CrawlState.BEGIN);
-                OpsLoadMain.STATES.remove(Utils.timestamp(-10));
+                OpsLoadMain.STATES.remove(DateUtil.timestamp(-10));
 
-                String directory = Utils.getBomcCurrDirectory();
+                String directory = DateUtil.currentBomcDirectory();
                 File file = new File(directory);
                 FileUtils.deleteDirectory(file);
                 FileUtils.forceMkdir(file);
