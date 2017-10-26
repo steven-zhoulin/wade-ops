@@ -32,7 +32,7 @@ public class OpsAnalyseMain {
 
         Map<String, String> map = new HashMap<>();
 
-        Connection connection = OpsHBaseAPI.getIntance().getConnection();
+        Connection connection = OpsHBaseAPI.getInstance().getConnection();
         HTable table = (HTable) connection.getTable(TableName.valueOf("trace_menu"));
 
         Scan scan = new Scan();
@@ -76,7 +76,7 @@ public class OpsAnalyseMain {
         for (String key : menus.keySet()) {
 
             String traceid = menus.get(key);
-            List<HashMap<String, Object>> probes = OpsHBaseAPI.getIntance().selectByTraceId(traceid);
+            List<HashMap<String, Object>> probes = OpsHBaseAPI.getInstance().selectByTraceId(traceid);
             List<HashMap<String, Object>> serviceProbes = new ArrayList<>();
 
             // 剔除非service的span

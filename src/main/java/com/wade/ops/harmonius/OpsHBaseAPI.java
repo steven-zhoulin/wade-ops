@@ -34,7 +34,7 @@ public class OpsHBaseAPI {
      * @return
      * @throws IOException
      */
-    public static final OpsHBaseAPI getIntance() throws IOException {
+    public static final OpsHBaseAPI getInstance() throws IOException {
         if (null == instance) {
             configuration = HBaseConfiguration.create();
             connection = ConnectionFactory.createConnection(configuration);
@@ -210,7 +210,7 @@ public class OpsHBaseAPI {
 
         String action = args[0];
 
-        OpsHBaseAPI api = OpsHBaseAPI.getIntance();
+        OpsHBaseAPI api = OpsHBaseAPI.getInstance();
 
         if (action.equals("selectByTraceId")) { // 根据 traceid 查追踪记录
             List<HashMap<String, Object>> spans = api.selectByTraceId(args[1]);
