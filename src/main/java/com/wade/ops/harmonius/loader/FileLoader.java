@@ -1,6 +1,7 @@
 package com.wade.ops.harmonius.loader;
 
 import org.apache.commons.lang.SerializationUtils;
+import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hbase.client.Put;
@@ -13,7 +14,7 @@ import java.util.Map;
 /**
  * Copyright: (c) 2017 Asiainfo
  *
- * @desc:
+ * @desc: 将bomc文件解析后加载到HBase
  * @auth: steven.zhou
  * @date: 2017/09/04
  */
@@ -21,60 +22,43 @@ public class FileLoader extends Thread {
 
     private static final Log LOG = LogFactory.getLog(FileLoader.class);
 
-    private static final byte[] NULL = new byte[0];
     private static final byte[] CF_SPAN = Bytes.toBytes("span");
-    private static final byte[] CF_TID = Bytes.toBytes("tid");
-
     private static final byte[] FAMILY_INFO = Bytes.toBytes("info");
     private static final byte[] COL_TID = Bytes.toBytes("tid");
 
-    private static final byte[] COL_TRACEID = Bytes.toBytes("traceid");
-    private static final byte[] COL_ID = Bytes.toBytes("id");
-    private static final byte[] COL_PARENTID = Bytes.toBytes("parentid");
-    private static final byte[] COL_STARTTIME = Bytes.toBytes("starttime");
-    private static final byte[] COL_ENDTIME = Bytes.toBytes("endtime");
-    private static final byte[] COL_COSTTIME = Bytes.toBytes("costtime");
-    private static final byte[] COL_PROBETYPE = Bytes.toBytes("probetype");
-    private static final byte[] COL_BIZID = Bytes.toBytes("bizid");
-    private static final byte[] COL_OPERID = Bytes.toBytes("operid");
-    private static final byte[] COL_SESSIONID = Bytes.toBytes("sessionid");
-    private static final byte[] COL_URL = Bytes.toBytes("url");
-    private static final byte[] COL_CLIENTIP = Bytes.toBytes("clientip");
-    private static final byte[] COL_SERVERNAME = Bytes.toBytes("servername");
-    private static final byte[] COL_MENUID = Bytes.toBytes("menuid");
-    private static final byte[] COL_STATUSCODE = Bytes.toBytes("statuscode");
-    private static final byte[] COL_IP = Bytes.toBytes("ip");
-    private static final byte[] COL_SERVICENAME = Bytes.toBytes("servicename");
-    private static final byte[] COL_MAINSERVICE = Bytes.toBytes("mainservice");
-    private static final byte[] COL_DATASOURCE = Bytes.toBytes("datasource");
-    private static final byte[] COL_SQLNAME = Bytes.toBytes("sqlname");
-    private static final byte[] COL_SQL = Bytes.toBytes("sql");
-
     private File file = null;
     private File loading = null;
+    private StopWatch stopWatch = new StopWatch();
 
-    public FileLoader(File file) {
+    FileLoader(File file) {
 
         // 文件加载任务一开始首先把文件名改掉，防止重复加载。
         this.file = file;
         this.loading = new File(file.getAbsolutePath() + ".loading");
-        file.renameTo(loading);
-        LOG.info("begin loading " + file.getName());
+        if (file.renameTo(loading)) {
+            LOG.info("begin loading " + file.getName());
+        } else {
+            LOG.error(file.getName() + ": .dat -> .dat.loading failure! ");
+        }
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     @Override
     public void run() {
-        long begin = System.currentTimeMillis();
+
+        stopWatch.start();
         load();
-        long cost = System.currentTimeMillis() - begin;
+        stopWatch.split();
 
         // 将处理完的文件改成历史文件
-        LOG.info(String.format("loaded %-70s cost: %5d ms", file.getAbsolutePath(), cost));
+        LOG.info(String.format("loaded %-70s cost: %5d ms", file.getAbsolutePath(), stopWatch.getSplitTime()));
         this.loading = new File(file.getAbsolutePath() + ".loading");
         File loaded = new File(file.getAbsolutePath() + ".loaded");
         this.loading.renameTo(loaded);
+
     }
 
+    @SuppressWarnings("unchecked")
     private void load() {
 
         FileInputStream fis;
@@ -201,10 +185,12 @@ public class FileLoader extends Thread {
      *
      * @param span
      */
+    @SuppressWarnings("unchecked")
     private static void loadTraceSn(HashMap<String, Object> span) {
 
         String probetype = (String) span.get("probetype");
 
+        // SN只会从APP的入参里取，记得配置WD_APPLOG_CONF表
         if (!"app".equals(probetype)) {
             return;
         }

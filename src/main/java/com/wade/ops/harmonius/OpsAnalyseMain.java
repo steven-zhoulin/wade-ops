@@ -47,8 +47,6 @@ public class OpsAnalyseMain {
         timestamp -= (timestamp % 1000000);
         String now = Long.toString(timestamp).substring(0, 7);
 
-        now = "150";
-        //     1508844648216
         Filter filter = new RowFilter(CompareFilter.CompareOp.EQUAL, new SubstringComparator("^" + now));
         scan.setFilter(filter);
 
@@ -119,9 +117,9 @@ public class OpsAnalyseMain {
     /**
      * 加载服务依赖
      *
-     * @param starttime
-     * @param parentServiceName
-     * @param childServiceName
+     * @param starttime 开始时间
+     * @param parentServiceName 上级服务名
+     * @param childServiceName 下级服务名
      */
     private void loadServieRelat(String starttime, String parentServiceName, String childServiceName) throws Exception {
 
