@@ -17,9 +17,8 @@ import java.util.Vector;
 /**
  * Copyright: (c) 2017 Asiainfo
  *
- * @description:
- * @version: v1.0
- * @author: steven.zhou
+ * @desc:
+ * @auth: steven.zhou
  * @date: 2017/09/01
  */
 class FileCrawler extends Thread {

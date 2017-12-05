@@ -7,6 +7,13 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+/**
+ * Copyright: (c) 2017 Asiainfo
+ *
+ * @desc:
+ * @auth: steven.zhou
+ * @date: 2017/09/01
+ */
 public final class DateUtil {
 
     /**
@@ -74,7 +81,7 @@ public final class DateUtil {
     public static void main(String[] args) throws Exception {
         // System.out.println(parse("2017-10-23 11:39:59"));
         // System.out.println(parse("2017-10-23 11:40:00"));
-        // System.out.println(DateFormatUtils.format(Long.parseLong("1508740204107"), "yyyy-MM-dd HH:mm:ss"));
+        System.out.println(DateFormatUtils.format(Long.parseLong("1508935934182"), "yyyy-MM-dd HH:mm:ss"));
     }
 
 }

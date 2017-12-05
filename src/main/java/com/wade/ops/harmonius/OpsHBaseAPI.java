@@ -16,6 +16,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * Copyright: (c) 2017 Asiainfo
+ *
+ * @desc:
+ * @auth: steven.zhou
+ * @date: 2017/09/01
+ */
 public class OpsHBaseAPI {
 
     private static Configuration configuration = null;
@@ -209,6 +216,7 @@ public class OpsHBaseAPI {
     public static void main(String[] args) throws Exception {
 
         String action = args[0];
+        System.out.println("action: " + action);
 
         OpsHBaseAPI api = OpsHBaseAPI.getInstance();
 
@@ -216,15 +224,16 @@ public class OpsHBaseAPI {
             List<HashMap<String, Object>> spans = api.selectByTraceId(args[1]);
             for (HashMap<String, Object> span : spans) {
                 System.out.println(span.get("id") + "|" + span.get("probetype"));
+                System.out.println(span);
             }
-            //System.out.println(spans);
         } else if (action.equals("selectByMenuId")) { // 根据菜单查追踪ID
+            System.out.println("args[1]: " + args[1]);
             System.out.println("args[2]: " + args[2]);
             System.out.println("args[3]: " + args[3]);
             List<String> tids = api.selectByMenuId(args[1], args[2], args[3]);
-            //for (String tid : tids) {
-            //    System.out.println(tid);
-            //}
+            for (String tid : tids) {
+                System.out.println(tid);
+            }
         } else if (action.equals("selectByOperId")) { // 根据工号查看追踪ID
             List<String> tids = api.selectByOperId(args[1], args[2], args[3]);
             for (String tid : tids) {

@@ -16,6 +16,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Copyright: (c) 2017 Asiainfo
+ *
+ * @desc:
+ * @auth: steven.zhou
+ * @date: 2017/09/01
+ */
 public class OpsAnalyseMain {
 
     private static final byte[] CF_RELAT = Bytes.toBytes("relat");
