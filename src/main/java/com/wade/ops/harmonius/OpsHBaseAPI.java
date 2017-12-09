@@ -2,6 +2,7 @@ package com.wade.ops.harmonius;
 
 import com.wade.ops.util.DateUtil;
 import org.apache.commons.lang3.SerializationUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
@@ -12,9 +13,7 @@ import org.apache.hadoop.hbase.filter.PrefixFilter;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * Copyright: (c) 2017 Asiainfo
@@ -71,6 +70,8 @@ public class OpsHBaseAPI {
         }
 
         table.close();
+
+        Collections.sort(rtn, new ProbeComparator()); // 按开始时间进行排序
         return rtn;
     }
 
@@ -88,7 +89,7 @@ public class OpsHBaseAPI {
         String startrow = menuid + "^" + start.substring(0, 9); // 时间戳: 1508729999000 只取前9位
         String stoprow  = menuid + "^" + end.substring(0, 9);
 
-        List<String> rtn = new ArrayList<>();
+        Set<String> set = new HashSet<>();
         HTable table = (HTable) connection.getTable(TableName.valueOf("trace_menu"));
 
         Scan scan = new Scan();
@@ -101,10 +102,18 @@ public class OpsHBaseAPI {
         for (Result r : rs) {
             byte[] byteValue = r.getValue(Bytes.toBytes("info"), Bytes.toBytes("tid"));
             String tid = Bytes.toString(byteValue);
-            rtn.add(tid);
+            set.add(tid);
+
+            if (set.size() > 5000) {
+                break;
+            }
         }
 
         table.close();
+
+        List<String> rtn = new ArrayList<>();
+        rtn.addAll(set);
+
         return rtn;
     }
 
@@ -124,7 +133,7 @@ public class OpsHBaseAPI {
         String startrow = operid + "^" + start.substring(0, 9); // 时间戳: 1508729999000 只取前9位
         String stoprow  = operid + "^" + end.substring(0, 9);
 
-        List<String> rtn = new ArrayList<>();
+        Set<String> set = new HashSet<>();
         HTable table = (HTable) connection.getTable(TableName.valueOf("trace_operid"));
 
         Scan scan = new Scan();
@@ -132,14 +141,22 @@ public class OpsHBaseAPI {
         scan.setStartRow(Bytes.toBytes(startrow));
         scan.setStopRow(Bytes.toBytes(stoprow));
 
+        int i = 0;
         ResultScanner rs = table.getScanner(scan);
         for (Result r : rs) {
             byte[] byteValue = r.getValue(Bytes.toBytes("info"), Bytes.toBytes("tid"));
             String tid = Bytes.toString(byteValue);
-            rtn.add(tid);
+            set.add(tid);
+            if (set.size() > 5000) {
+                break;
+            }
         }
 
         table.close();
+
+        List<String> rtn = new ArrayList<>();
+        rtn.addAll(set);
+
         return rtn;
     }
 
@@ -159,7 +176,7 @@ public class OpsHBaseAPI {
         String startrow = sn + "^" + start.substring(0, 9); // 时间戳: 1508729999000 只取前9位
         String stoprow  = sn + "^" + end.substring(0, 9);
 
-        List<String> rtn = new ArrayList<>();
+        Set<String> set = new HashSet<>();
         HTable table = (HTable) connection.getTable(TableName.valueOf("trace_sn"));
 
         Scan scan = new Scan();
@@ -167,14 +184,22 @@ public class OpsHBaseAPI {
         scan.setStartRow(Bytes.toBytes(startrow));
         scan.setStopRow(Bytes.toBytes(stoprow));
 
+        int i = 0;
         ResultScanner rs = table.getScanner(scan);
         for (Result r : rs) {
             byte[] byteValue = r.getValue(Bytes.toBytes("info"), Bytes.toBytes("tid"));
             String tid = Bytes.toString(byteValue);
-            rtn.add(tid);
+            set.add(tid);
+            if (set.size() > 5000) {
+                break;
+            }
         }
 
         table.close();
+
+        List<String> rtn = new ArrayList<>();
+        rtn.addAll(set);
+
         return rtn;
     }
 
@@ -194,7 +219,7 @@ public class OpsHBaseAPI {
         String startrow = servicename + "^" + start.substring(0, 9); // 时间戳: 1508729999000 只取前9位
         String stoprow  = servicename + "^" + end.substring(0, 9);
 
-        List<String> rtn = new ArrayList<>();
+        Set<String> set = new HashSet<>();
         HTable table = (HTable) connection.getTable(TableName.valueOf("trace_service"));
 
         Scan scan = new Scan();
@@ -202,15 +227,84 @@ public class OpsHBaseAPI {
         scan.setStartRow(Bytes.toBytes(startrow));
         scan.setStopRow(Bytes.toBytes(stoprow));
 
+        int i = 0;
         ResultScanner rs = table.getScanner(scan);
         for (Result r : rs) {
             byte[] byteValue = r.getValue(Bytes.toBytes("info"), Bytes.toBytes("tid"));
             String tid = Bytes.toString(byteValue);
-            rtn.add(tid);
+            set.add(tid);
+            if (set.size() > 5000) {
+                break;
+            }
         }
 
         table.close();
+
+        List<String> rtn = new ArrayList<>();
+        rtn.addAll(set);
+
         return rtn;
+    }
+
+    /**
+     * 多维度查询
+     *
+     * @param dimensions
+     * @param starttime
+     * @param endtime
+     * @return
+     * @throws Exception
+     */
+    public List<String> selectByAll(Map<String, String> dimensions, String starttime, String endtime) throws Exception {
+
+        String menuid = dimensions.get("menuid");
+        String operid = dimensions.get("operid");
+        String sn = dimensions.get("sn");
+        String servicename = dimensions.get("servicename");
+
+        Set<String> traceSet = new HashSet<>();
+        if (StringUtils.isNotBlank(menuid)) {
+            List<String> list = selectByMenuId(menuid, starttime, endtime);
+            intersection(traceSet, list);
+        }
+
+        if (StringUtils.isNotBlank(operid)) {
+            List<String> list = selectByOperId(operid, starttime, endtime);
+            intersection(traceSet, list);
+        }
+
+        if (StringUtils.isNotBlank(sn)) {
+            List<String> list = selectBySn(sn, starttime, endtime);
+            intersection(traceSet, list);
+        }
+
+        if (StringUtils.isNotBlank(servicename)) {
+            List<String> list = selectByService(servicename, starttime, endtime);
+            intersection(traceSet, list);
+        }
+
+        List<String> rtn = new ArrayList<>();
+        rtn.addAll(traceSet);
+        return rtn;
+    }
+
+    /**
+     * 取交集
+     *
+     * @param traceSet
+     * @param list
+     */
+    private static final void intersection(Set<String> traceSet, List<String> list) {
+
+        Set<String> set = new HashSet<>();
+        set.addAll(list);
+
+        if (0 == traceSet.size()) {
+            traceSet.addAll(set);
+        } else {
+            traceSet.retainAll(set);
+        }
+
     }
 
     public static void main(String[] args) throws Exception {
@@ -246,6 +340,22 @@ public class OpsHBaseAPI {
             }
         } else if (action.equals("selectByService")) {
             List<String> tids = api.selectByService(args[1], args[2], args[3]);
+            for (String tid : tids) {
+                System.out.println(tid);
+            }
+        } else if (action.equals("selectByAll")) {
+
+            Map<String, String> dimensions = new HashMap<>();
+            String queryString = args[1];
+
+            String[] params = StringUtils.split(queryString, '&');
+            for (String kv : params) {
+                String[] x = StringUtils.split(kv, '=');
+                dimensions.put(x[0], x[1]);
+            }
+            System.out.println("dimensions: " + dimensions);
+
+            List<String>  tids = api.selectByAll(dimensions, args[2], args[3]);
             for (String tid : tids) {
                 System.out.println(tid);
             }

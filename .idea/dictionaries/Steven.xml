@@ -11,7 +11,9 @@
       <w>rowkey</w>
       <w>servicename</w>
       <w>servie</w>
+      <w>startrow</w>
       <w>starttime</w>
+      <w>stoprow</w>
       <w>traceid</w>
     </words>
   </dictionary>
