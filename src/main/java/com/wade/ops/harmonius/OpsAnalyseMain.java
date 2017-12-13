@@ -2,6 +2,8 @@ package com.wade.ops.harmonius;
 
 import com.wade.ops.harmonius.loader.HBaseUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.filter.CompareFilter;
@@ -19,12 +21,15 @@ import java.util.Map;
 /**
  * Copyright: (c) 2017 Asiainfo
  *
- * @desc:
+ * @desc: 分析
  * @auth: steven.zhou
  * @date: 2017/09/01
  */
 public class OpsAnalyseMain {
 
+    private static final Log LOG = LogFactory.getLog(OpsAnalyseMain.class);
+
+    private static final byte[] CF_MENUID = Bytes.toBytes("menuid");
     private static final byte[] CF_RELAT = Bytes.toBytes("relat");
     private static final byte[] COL_POSITIVE = Bytes.toBytes("positive");
     private static final byte[] COL_REVERSE = Bytes.toBytes("reverse");
@@ -43,7 +48,7 @@ public class OpsAnalyseMain {
         HTable table = (HTable) connection.getTable(TableName.valueOf(Constants.HT_TRACE_MENU));
 
         Scan scan = new Scan();
-        long timestamp = System.currentTimeMillis();
+        long timestamp = System.currentTimeMillis() - 1000000; // 分析前1000秒的数据
         timestamp -= (timestamp % 1000000);
         String now = Long.toString(timestamp).substring(0, 7);
 
@@ -53,7 +58,7 @@ public class OpsAnalyseMain {
         ResultScanner rs = table.getScanner(scan);
         for (Result r : rs) {
             String rowkey = Bytes.toString(r.getRow());
-            // 这里需要通过时间戳过滤调一部分数据
+            // 这里需要通过时间戳过滤一部分数据
 
             String tid = Bytes.toString(r.getValue(Bytes.toBytes("info"), Bytes.toBytes("tid")));
             int i = rowkey.indexOf('^');
@@ -80,6 +85,7 @@ public class OpsAnalyseMain {
 
         for (String key : menus.keySet()) {
 
+            String menuid = key.substring(0, key.indexOf('^'));
             String traceid = menus.get(key);
             List<HashMap<String, Object>> probes = OpsHBaseAPI.getInstance().selectByTraceId(traceid);
             List<HashMap<String, Object>> serviceProbes = new ArrayList<>();
@@ -93,16 +99,16 @@ public class OpsAnalyseMain {
             }
 
             int i = 0;
-            for (HashMap<String, Object> serviceProbe : serviceProbes) {
+            for (HashMap<String, Object> parent : serviceProbes) {
 
-                String id =  (String) serviceProbe.get("id");
-                String parentServiceName = (String) serviceProbe.get("servicename");
-                for (HashMap<String, Object> sub : serviceProbes) {
-                    String parentid =  (String) sub.get("parentid");
-                    String childServicename = (String) sub.get("servicename");
-                    String starttime = (String) sub.get("starttime");
+                String id =  (String) parent.get("id");
+                String pServiceName = (String) parent.get("servicename");
+                for (HashMap<String, Object> child : serviceProbes) {
+                    String parentid =  (String) child.get("parentid");
+                    String cServicename = (String) child.get("servicename");
+                    String starttime = (String) child.get("starttime");
                     if (id.equals(parentid)) {
-                        loadServieRelat(starttime, parentServiceName, childServicename);
+                        loadServieRelat(starttime, pServiceName, cServicename, menuid);
                         if (i++ % 1000 == 0) {
                             HBaseUtils.serviceMapFlushCommits();
                         }
@@ -118,31 +124,47 @@ public class OpsAnalyseMain {
      * 加载服务依赖
      *
      * @param starttime 开始时间
-     * @param parentServiceName 上级服务名
-     * @param childServiceName 下级服务名
+     * @param pServiceName 上级服务名
+     * @param cServiceName 下级服务名
      */
-    private void loadServieRelat(String starttime, String parentServiceName, String childServiceName) throws Exception {
+    private void loadServieRelat(String starttime, String pServiceName, String cServiceName, String menuid) throws Exception {
 
         long st = Long.parseLong(starttime);
-        String day = DateFormatUtils.format(st, "yyyyMMdd");
+        String day = DateFormatUtils.format(st, "yyyyMM");
+
+        byte[] qualifier = Bytes.toBytes(starttime);
+        byte[] value = Bytes.toBytes(menuid);
 
         // 正向服务依赖
-        Put positivePut = new Put(Bytes.toBytes(parentServiceName + "^" + day));
-        positivePut.addColumn(CF_RELAT, COL_POSITIVE, Bytes.toBytes(childServiceName));
+        Put positivePut = new Put(Bytes.toBytes(pServiceName + "^" + day));
+        positivePut.addColumn(CF_RELAT, COL_POSITIVE, Bytes.toBytes(cServiceName));
+        positivePut.addColumn(CF_MENUID, qualifier, value);
         HBaseUtils.serviceMapPut(positivePut);
 
         // 反向服务依赖
-        Put reversePut = new Put(Bytes.toBytes(childServiceName + "^" + day));
-        reversePut.addColumn(CF_RELAT, COL_REVERSE, Bytes.toBytes(parentServiceName));
+        Put reversePut = new Put(Bytes.toBytes(cServiceName + "^" + day));
+        reversePut.addColumn(CF_RELAT, COL_REVERSE, Bytes.toBytes(pServiceName));
+        reversePut.addColumn(CF_MENUID, qualifier, value);
         HBaseUtils.serviceMapPut(reversePut);
 
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
 
         OpsAnalyseMain serviceMapAnalyse = new OpsAnalyseMain();
-        Map<String, String> map = serviceMapAnalyse.extractAnalyseMenu();
-        serviceMapAnalyse.analyseServiceRelation(map);
+
+        while (true) {
+            try {
+                LOG.info("start service relationship analysing...");
+                long start = System.currentTimeMillis();
+                Map<String, String> map = serviceMapAnalyse.extractAnalyseMenu();
+                serviceMapAnalyse.analyseServiceRelation(map);
+                LOG.info("analyse completed, cost: " + (System.currentTimeMillis() - start) + "ms");
+                Thread.sleep(1000 * 1000); // 一千秒分析一次
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
 
     }
 
