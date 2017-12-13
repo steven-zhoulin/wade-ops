@@ -40,7 +40,7 @@ public class OpsAnalyseMain {
         Map<String, String> map = new HashMap<>();
 
         Connection connection = OpsHBaseAPI.getInstance().getConnection();
-        HTable table = (HTable) connection.getTable(TableName.valueOf("trace_menu"));
+        HTable table = (HTable) connection.getTable(TableName.valueOf(Constants.HT_TRACE_MENU));
 
         Scan scan = new Scan();
         long timestamp = System.currentTimeMillis();

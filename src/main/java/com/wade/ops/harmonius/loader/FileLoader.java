@@ -146,16 +146,17 @@ public class FileLoader extends Thread {
 
         String probetype = (String) span.get("probetype");
 
-        if (probetype.equals("web")) {
-            String traceid = (String) span.get("traceid");
-            String menuid = (String) span.get("menuid");
-            String starttime = (String) span.get("starttime");
-
-            String rowkey = menuid + "^" + starttime;
-            Put put = new Put(Bytes.toBytes(rowkey));
-            put.addColumn(FAMILY_INFO, COL_TID, Bytes.toBytes(traceid));
-            HBaseUtils.traceMenuPut(put);
+        if (!"web".equals(probetype)) {
+            return;
         }
+
+        String traceid = (String) span.get("traceid");
+        String menuid = (String) span.get("menuid");
+        String starttime = (String) span.get("starttime");
+        String rowkey = menuid + "^" + starttime;
+        Put put = new Put(Bytes.toBytes(rowkey));
+        put.addColumn(FAMILY_INFO, COL_TID, Bytes.toBytes(traceid));
+        HBaseUtils.traceMenuPut(put);
 
     }
 
@@ -168,16 +169,18 @@ public class FileLoader extends Thread {
 
         String probetype = (String) span.get("probetype");
 
-        if (probetype.equals("app")) {
-
-            String traceid = (String) span.get("traceid");
-            String starttime = (String) span.get("starttime");
-            String operid = (String) span.get("operid");
-            String rowkey = operid + "^" + starttime;
-            Put put = new Put(Bytes.toBytes(rowkey));
-            put.addColumn(FAMILY_INFO, COL_TID, Bytes.toBytes(traceid));
-            HBaseUtils.traceOperidPut(put);
+        if (!"app".equals(probetype)) {
+            return;
         }
+
+        String traceid = (String) span.get("traceid");
+        String starttime = (String) span.get("starttime");
+        String operid = (String) span.get("operid");
+        String rowkey = operid + "^" + starttime;
+        Put put = new Put(Bytes.toBytes(rowkey));
+        put.addColumn(FAMILY_INFO, COL_TID, Bytes.toBytes(traceid));
+        HBaseUtils.traceOperidPut(put);
+
     }
 
     /**

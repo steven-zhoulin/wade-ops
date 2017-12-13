@@ -1,5 +1,6 @@
 package com.wade.ops.harmonius.loader;
 
+import com.wade.ops.harmonius.Constants;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.TableName;
@@ -34,12 +35,12 @@ public class HBaseUtils {
         try {
 
             connection = ConnectionFactory.createConnection(configuration);
-            ht_trace = (HTable) connection.getTable(TableName.valueOf("trace"));
-            ht_trace_menu = (HTable) connection.getTable(TableName.valueOf("trace_menu"));
-            ht_trace_operid = (HTable) connection.getTable(TableName.valueOf("trace_operid"));
-            ht_trace_sn = (HTable) connection.getTable(TableName.valueOf("trace_sn"));
-            ht_trace_service = (HTable) connection.getTable(TableName.valueOf("trace_service"));
-            ht_service_map = (HTable) connection.getTable(TableName.valueOf("service_map"));
+            ht_trace_menu = (HTable) connection.getTable(TableName.valueOf(Constants.HT_TRACE));
+            ht_trace_menu = (HTable) connection.getTable(TableName.valueOf(Constants.HT_TRACE_MENU));
+            ht_trace_operid = (HTable) connection.getTable(TableName.valueOf(Constants.HT_TRACE_OPERID));
+            ht_trace_sn = (HTable) connection.getTable(TableName.valueOf(Constants.HT_TRACE_SN));
+            ht_trace_service = (HTable) connection.getTable(TableName.valueOf(Constants.HT_TRACE_SERVICE));
+            ht_service_map = (HTable) connection.getTable(TableName.valueOf(Constants.HT_SERVICE_MAP));
 
             ht_trace.setAutoFlushTo(false);
             ht_trace_menu.setAutoFlushTo(false);

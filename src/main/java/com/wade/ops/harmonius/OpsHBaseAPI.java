@@ -60,7 +60,7 @@ public class OpsHBaseAPI {
 
         List<HashMap<String, Object>> rtn = new ArrayList<>();
 
-        HTable table = (HTable) connection.getTable(TableName.valueOf("trace"));
+        HTable table = (HTable) connection.getTable(TableName.valueOf(Constants.HT_TRACE));
         Get get = new Get(Bytes.toBytes(traceid));
         Result result = table.get(get);
 
@@ -90,7 +90,7 @@ public class OpsHBaseAPI {
         String stoprow  = menuid + "^" + end.substring(0, 9);
 
         Set<String> set = new HashSet<>();
-        HTable table = (HTable) connection.getTable(TableName.valueOf("trace_menu"));
+        HTable table = (HTable) connection.getTable(TableName.valueOf(Constants.HT_TRACE_MENU));
 
         Scan scan = new Scan();
         scan.setFilter(new PrefixFilter(Bytes.toBytes(menuid + "^")));
@@ -134,7 +134,7 @@ public class OpsHBaseAPI {
         String stoprow  = operid + "^" + end.substring(0, 9);
 
         Set<String> set = new HashSet<>();
-        HTable table = (HTable) connection.getTable(TableName.valueOf("trace_operid"));
+        HTable table = (HTable) connection.getTable(TableName.valueOf(Constants.HT_TRACE_OPERID));
 
         Scan scan = new Scan();
         scan.setFilter(new PrefixFilter(Bytes.toBytes(operid + "^")));
@@ -177,7 +177,7 @@ public class OpsHBaseAPI {
         String stoprow  = sn + "^" + end.substring(0, 9);
 
         Set<String> set = new HashSet<>();
-        HTable table = (HTable) connection.getTable(TableName.valueOf("trace_sn"));
+        HTable table = (HTable) connection.getTable(TableName.valueOf(Constants.HT_TRACE_SN));
 
         Scan scan = new Scan();
         scan.setFilter(new PrefixFilter(Bytes.toBytes(sn + "^")));
@@ -220,7 +220,7 @@ public class OpsHBaseAPI {
         String stoprow  = servicename + "^" + end.substring(0, 9);
 
         Set<String> set = new HashSet<>();
-        HTable table = (HTable) connection.getTable(TableName.valueOf("trace_service"));
+        HTable table = (HTable) connection.getTable(TableName.valueOf(Constants.HT_TRACE_SERVICE));
 
         Scan scan = new Scan();
         scan.setFilter(new PrefixFilter(Bytes.toBytes(servicename + "^")));

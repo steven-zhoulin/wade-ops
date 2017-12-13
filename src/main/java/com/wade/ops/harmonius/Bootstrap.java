@@ -1,7 +1,5 @@
 package com.wade.ops.harmonius;
 
-import com.wade.ops.harmonius.OpsLoadMain;
-
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URL;

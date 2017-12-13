@@ -24,7 +24,6 @@ import java.util.Vector;
 class FileCrawler extends Thread {
 
     private static final Log LOG = LogFactory.getLog(FileCrawler.class);
-    private static final String CRLF = System.getProperty("line.separator");
 
     private Host host;
     private String timestamp;
@@ -51,8 +50,6 @@ class FileCrawler extends Thread {
      * @throws Exception
      */
     private void crawlFilesBySftp() {
-
-        int count = 0;
 
         String ip = host.getHost();
         String user = host.getUser();
@@ -81,11 +78,11 @@ class FileCrawler extends Thread {
 
             LOG.info("Resource from " + host.getUser() + "@" + host.getHost() + ":" + host.getPath());
 
-            Vector bomcs = channel.ls("bomc.*" + timestamp + ".dat");
+            Vector bomcFiles = channel.ls("bomc.*" + timestamp + ".dat");
 
-            for (Object o : bomcs) {
-                if (o instanceof ChannelSftp.LsEntry) {
-                    ChannelSftp.LsEntry entry = (ChannelSftp.LsEntry) o;
+            for (Object bomcFile : bomcFiles) {
+                if (bomcFile instanceof ChannelSftp.LsEntry) {
+                    ChannelSftp.LsEntry entry = (ChannelSftp.LsEntry) bomcFile;
                     String fileName = entry.getFilename();
                     File file = new File(dstDir + "/" + fileName + ".crawling");
                     FileOutputStream fos = new FileOutputStream(file);
@@ -96,9 +93,8 @@ class FileCrawler extends Thread {
 
                     IOUtils.closeQuietly(fos);
                     long size = FileUtils.sizeOf(file);
-                    //LOG.info(String.format("crawl %s@%s:%s/%-45s %6d bytes cost %3s ms", host.getUser(), host.getHost(), host.getPath(), fileName, size, cost));
+                    LOG.info(String.format("crawl %s@%s:%s/%-45s %6d bytes cost %3s ms", host.getUser(), host.getHost(), host.getPath(), fileName, size, cost));
                     file.renameTo(new File(dstDir + "/" + fileName));
-                    count++;
                 }
             }
 
