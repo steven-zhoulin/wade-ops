@@ -3,6 +3,9 @@ package com.wade.ops.harmonius;
 import com.wade.ops.util.DateUtil;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
@@ -22,7 +25,9 @@ import java.util.*;
  * @auth: steven.zhou
  * @date: 2017/09/01
  */
-public class OpsHBaseAPI {
+public class OpsHBaseAPI implements Constants {
+
+    private static final Log LOG = LogFactory.getLog(OpsHBaseAPI.class);
 
     private static Configuration configuration = null;
     private static Connection connection = null;
@@ -47,6 +52,57 @@ public class OpsHBaseAPI {
             instance = new OpsHBaseAPI();
         }
         return instance;
+    }
+
+    /**
+     * 根据服务名查询依赖关系
+     *
+     * @param serviceName
+     * @return
+     * @throws IOException
+     */
+    public Relation selectRelatByService(String serviceName) throws IOException {
+
+        Relation relation = new Relation();
+
+        HTable table = (HTable) connection.getTable(TableName.valueOf(Constants.HT_SERVICE_MAP));
+        String day = DateFormatUtils.format(System.currentTimeMillis(), "yyyy-MM");
+        Get get = new Get(Bytes.toBytes(serviceName + "^" + day));
+        Result result = table.get(get);
+
+        result.rawCells();
+        for (Cell cell : result.rawCells()) {
+            String rowkey = new String(CellUtil.cloneRow(cell));
+            String family = new String(CellUtil.cloneFamily(cell));
+            String column = new String(CellUtil.cloneQualifier(cell));
+            String value = new String(CellUtil.cloneValue(cell));
+
+            if (LOG.isInfoEnabled()) {
+                LOG.info("rowkey: " + rowkey);
+                LOG.info("family: " + family);
+                LOG.info("column: " + column);
+                LOG.info(" value: " + value);
+            }
+
+            Map<String, String> map = null;
+            String key = null;
+            if (column.startsWith(dependService)) {
+                map = relation.getDependService();
+                key = StringUtils.stripStart(column, dependService);
+            } else if (column.startsWith(beDependService)) {
+                map = relation.getBeDependService();
+                key = StringUtils.stripStart(column, beDependService);
+            } else if (column.startsWith(beDependMenuId)) {
+                map = relation.getBeDependMenuId();
+                key = StringUtils.stripStart(column, beDependMenuId);
+            }
+
+            if (null != map && null != key) {
+                map.put(key, value);
+            }
+        }
+
+        return relation;
     }
 
     /**
@@ -359,6 +415,9 @@ public class OpsHBaseAPI {
             for (String tid : tids) {
                 System.out.println(tid);
             }
+        } else if (action.equals("selectRelatByService")) {
+            Relation relation = api.selectRelatByService(args[1]);
+            System.out.println(relation);
         }
 
     }

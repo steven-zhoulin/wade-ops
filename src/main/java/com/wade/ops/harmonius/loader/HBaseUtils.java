@@ -35,7 +35,7 @@ public class HBaseUtils {
         try {
 
             connection = ConnectionFactory.createConnection(configuration);
-            ht_trace_menu = (HTable) connection.getTable(TableName.valueOf(Constants.HT_TRACE));
+            ht_trace = (HTable) connection.getTable(TableName.valueOf(Constants.HT_TRACE));
             ht_trace_menu = (HTable) connection.getTable(TableName.valueOf(Constants.HT_TRACE_MENU));
             ht_trace_operid = (HTable) connection.getTable(TableName.valueOf(Constants.HT_TRACE_OPERID));
             ht_trace_sn = (HTable) connection.getTable(TableName.valueOf(Constants.HT_TRACE_SN));
@@ -46,6 +46,7 @@ public class HBaseUtils {
             ht_trace_menu.setAutoFlushTo(false);
             ht_trace_operid.setAutoFlushTo(false);
             ht_trace_sn.setAutoFlushTo(false);
+            ht_trace_service.setAutoFlushTo(false);
             ht_service_map.setAutoFlushTo(false);
 
         } catch (IOException e) {
