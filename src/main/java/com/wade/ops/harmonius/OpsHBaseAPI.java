@@ -84,25 +84,56 @@ public class OpsHBaseAPI implements Constants {
                 LOG.info(" value: " + value);
             }
 
-            Map<String, String> map = null;
-            String key = null;
             if (column.startsWith(dependService)) {
-                map = relation.getDependService();
-                key = StringUtils.stripStart(column, dependService);
+
+                Map<String, String> data = new HashMap<>();
+                data.put("dependService", extract(column));
+                data.put("date", extractDate(column));
+
+                relation.getDependService().add(data);
+
             } else if (column.startsWith(beDependService)) {
-                map = relation.getBeDependService();
-                key = StringUtils.stripStart(column, beDependService);
+
+                Map<String, String> data = new HashMap<>();
+                data.put("beDependService", extract(column));
+                data.put("date", extractDate(column));
+                data.put("mainservice", isMainService(value));
+
+                relation.getBeDependService().add(data);
+
             } else if (column.startsWith(beDependMenuId)) {
-                map = relation.getBeDependMenuId();
-                key = StringUtils.stripStart(column, beDependMenuId);
+
+                Map<String, String> data = new HashMap<>();
+                data.put("beDependMenuId", extract(column));
+                data.put("date", extractDate(column));
+
+                relation.getBeDependMenuId().add(data);
             }
 
-            if (null != map && null != key) {
-                map.put(key, value);
-            }
         }
 
         return relation;
+    }
+
+    private static final String extract(String column) {
+        int i = column.indexOf('|');
+        int j = column.indexOf('|', i);
+        return column.substring(i + 1, j);
+    }
+
+    private static final String extractDate(String column) {
+        int i = column.lastIndexOf('|');
+        return column.substring(i + 1);
+    }
+
+    public static final String isMainService(String value) {
+        int i = value.indexOf("mainservice=true");
+        if (-1 != i) {
+            return "true";
+        } else {
+            return "false";
+        }
+
     }
 
     /**

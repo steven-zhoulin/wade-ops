@@ -1,6 +1,8 @@
 package com.wade.ops.harmonius;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -13,24 +15,33 @@ import java.util.Map;
 public class Relation {
 
     /**
-     * 依赖的服务 K:依赖发生的时间, V: 依赖的服务名
+     * 依赖的服务
+     *
+     * K1:'dependService', V1: '依赖的服务名' |  K2:'date', V2:'2017-12-10'
+     *
      */
-    private Map<String, String> dependService;
+    private List<Map<String, String>> dependService;
 
     /**
-     * 被什么服务依赖 K:被依赖的时间, V: 被依赖的服务名
+     * 被什么服务依赖
+     *
+     * K1:'beDependService', V1: '被依赖的服务名' |  K2:'date', V2:'2017-12-10' | K3:'mainservice', v3:'true|false'
+     *
      */
-    private Map<String, String> beDependService;
+    private List<Map<String, String>> beDependService;
 
     /**
-     * 被什么菜单依赖 K:被依赖的时间, V: 被依赖的菜单名
+     * 被什么菜单依赖
+     *
+     * K1:'beDependMenuId', V1: '依赖的菜单名' |  K2:'date', V2:'2017-12-10'
+     *
      */
-    private Map<String, String> beDependMenuId;
+    private List<Map<String, String>> beDependMenuId;
 
     public Relation() {
-        dependService = new HashMap<>();
-        beDependService = new HashMap<>();
-        beDependMenuId = new HashMap<>();
+        dependService = new ArrayList<>();
+        beDependService = new ArrayList<>();
+        beDependMenuId = new ArrayList<>();
     }
 
     /**
@@ -38,7 +49,7 @@ public class Relation {
      *
      * @return
      */
-    public Map<String, String> getDependService() {
+    public List<Map<String, String>> getDependService() {
         return dependService;
     }
 
@@ -47,7 +58,7 @@ public class Relation {
      *
      * @return
      */
-    public Map<String, String> getBeDependService() {
+    public List<Map<String, String>> getBeDependService() {
         return beDependService;
     }
 
@@ -56,15 +67,15 @@ public class Relation {
      *
      * @return
      */
-    public Map<String, String> getBeDependMenuId() {
+    public List<Map<String, String>> getBeDependMenuId() {
         return beDependMenuId;
     }
 
     public String toString() {
         StringBuilder sb = new StringBuilder(2000);
-        sb.append("dependService: " + dependService + "\n");
-        sb.append("beDependService " + beDependService + "\n");
-        sb.append("beDependMenuId: " + beDependMenuId + "\n");
+        sb.append(dependService + "\n");
+        sb.append(beDependService + "\n");
+        sb.append(beDependMenuId + "\n");
         return sb.toString();
     }
 

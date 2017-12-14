@@ -132,6 +132,7 @@ public class OpsAnalyse implements Constants {
      * @param starttime 开始时间
      * @param pServiceName 上级服务名
      * @param cServiceName 下级服务名
+     * @param mainservice 是否为主服务
      */
     private void loadServieRelat(String starttime, String pServiceName, String cServiceName, String menuid, Boolean mainservice) throws Exception {
 
@@ -151,7 +152,7 @@ public class OpsAnalyse implements Constants {
 
         // 反向服务依赖
         Put reversePut = new Put(Bytes.toBytes(cServiceName + "^" + yyyyMM));
-        reversePut.addColumn(CF_RELAT, beDependServiceBytes, Bytes.toBytes("isMainService:" + mainservice));
+        reversePut.addColumn(CF_RELAT, beDependServiceBytes, Bytes.toBytes("mainservice=" + mainservice));
         reversePut.addColumn(CF_RELAT, beDependMenuIdBytes, NULL_BYTES);
         HBaseUtils.serviceMapPut(reversePut);
 
@@ -159,18 +160,18 @@ public class OpsAnalyse implements Constants {
 
     public void start() throws Exception {
 
+        LOG.info("服务地图关系分析进程启动成功!");
+
         while (true) {
             try {
 
-                LOG.info("start service relationship analysing...");
-
                 long start = System.currentTimeMillis();
-                Map<String, String> map = extractAnalyseMenu();
-                LOG.info("待分析菜单: " + map.size() + "项");
 
+                Map<String, String> map = extractAnalyseMenu();
                 analyseServiceRelation(map);
 
-                LOG.info("analyse completed, cost: " + (System.currentTimeMillis() - start) + "ms");
+                long cost = System.currentTimeMillis() - start;
+                LOG.info(String.format("分析完成, 共分析菜单: %d项, 耗时: %d ms", map.size(), cost));
 
                 Thread.sleep(1000 * 1000); // 一千秒分析一次
             } catch (Exception e) {
