@@ -26,8 +26,6 @@ public class OpsAnalyse implements Constants {
 
     private static final Log LOG = LogFactory.getLog(OpsAnalyse.class);
 
-    private static final byte[] CF_RELAT = Bytes.toBytes("relat");
-
     /**
      * 抽取待分析的追踪ID集合
      *
