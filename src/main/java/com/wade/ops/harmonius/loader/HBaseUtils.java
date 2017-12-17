@@ -4,10 +4,7 @@ import com.wade.ops.harmonius.Constants;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.ConnectionFactory;
-import org.apache.hadoop.hbase.client.HTable;
-import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.client.*;
 
 import java.io.IOException;
 
@@ -29,6 +26,7 @@ public class HBaseUtils {
     private static HTable ht_trace_sn = null;
     private static HTable ht_trace_service = null;
     private static HTable ht_service_map = null;
+    private static HTable ht_sink_service_relat = null;
 
     static {
 
@@ -41,6 +39,7 @@ public class HBaseUtils {
             ht_trace_sn = (HTable) connection.getTable(TableName.valueOf(Constants.HT_TRACE_SN));
             ht_trace_service = (HTable) connection.getTable(TableName.valueOf(Constants.HT_TRACE_SERVICE));
             ht_service_map = (HTable) connection.getTable(TableName.valueOf(Constants.HT_SERVICE_MAP));
+            ht_sink_service_relat = (HTable) connection.getTable(TableName.valueOf(Constants.HT_SINK_SERVICE_RELAT));
 
             ht_trace.setAutoFlushTo(false);
             ht_trace_menu.setAutoFlushTo(false);
@@ -48,6 +47,7 @@ public class HBaseUtils {
             ht_trace_sn.setAutoFlushTo(false);
             ht_trace_service.setAutoFlushTo(false);
             ht_service_map.setAutoFlushTo(false);
+            ht_sink_service_relat.setAutoFlushTo(false);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -104,6 +104,14 @@ public class HBaseUtils {
         }
     }
 
+    public static void sinkServiceRelatIncrement(Increment increment) {
+        try {
+            HBaseUtils.ht_sink_service_relat.increment(increment);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void traceFlushCommits() {
         try {
             ht_trace.flushCommits();
@@ -152,6 +160,14 @@ public class HBaseUtils {
         }
     }
 
+    public static void sinkServiceRelatFlushCommits() {
+        try {
+            ht_sink_service_relat.flushCommits();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void commitAndClose() {
         try {
 
@@ -161,6 +177,7 @@ public class HBaseUtils {
             ht_trace_sn.flushCommits();
             ht_trace_service.flushCommits();
             ht_service_map.flushCommits();
+            ht_sink_service_relat.flushCommits();
 
             ht_trace.close();
             ht_trace_menu.close();
@@ -168,6 +185,7 @@ public class HBaseUtils {
             ht_trace_sn.close();
             ht_trace_service.close();
             ht_service_map.close();
+            ht_sink_service_relat.close();
 
         } catch (IOException e) {
             e.printStackTrace();

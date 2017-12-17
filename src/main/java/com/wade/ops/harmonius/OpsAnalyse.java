@@ -13,10 +13,7 @@ import org.apache.hadoop.hbase.filter.SubstringComparator;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Copyright: (c) 2017 Asiainfo
@@ -32,17 +29,17 @@ public class OpsAnalyse implements Constants {
     private static final byte[] CF_RELAT = Bytes.toBytes("relat");
 
     /**
-     * 抽取待分析的菜单集
+     * 抽取待分析的追踪ID集合
      *
      * @return
      * @throws IOException
      */
-    private Map<String, String> extractAnalyseMenu() throws IOException {
+    private Set<String> extractAnalyseService() throws IOException {
 
-        Map<String, String> map = new HashMap<>();
+        Set<String> traceIdSet = new HashSet<>();
 
         Connection connection = OpsHBaseAPI.getInstance().getConnection();
-        HTable table = (HTable) connection.getTable(TableName.valueOf(HT_TRACE_MENU));
+        HTable table = (HTable) connection.getTable(TableName.valueOf(HT_TRACE_SERVICE));
 
         Scan scan = new Scan();
         long timestamp = System.currentTimeMillis() - 1000000; // 分析前1000秒的数据
@@ -54,48 +51,41 @@ public class OpsAnalyse implements Constants {
 
         ResultScanner rs = table.getScanner(scan);
         for (Result r : rs) {
-            String rowkey = Bytes.toString(r.getRow());
-            // 这里需要通过时间戳过滤一部分数据
-
+            // String rowkey = Bytes.toString(r.getRow());
             String tid = Bytes.toString(r.getValue(Bytes.toBytes("info"), Bytes.toBytes("tid")));
-            int i = rowkey.indexOf('^');
-            rowkey = rowkey.substring(0, i + 7); // 8: 每一千秒分析一次, 7: 每一万秒分析一次,
-            if (map.containsKey(rowkey)) {
-                continue;
-            }
-
-            map.put(rowkey, tid);
-
+            traceIdSet.add(tid);
         }
 
         table.close();
-        return map;
+        return traceIdSet;
     }
 
     /**
-     * 分析服务关系
+     * 带计数器功能的服务依赖分析
      *
-     * @param menus
+     * @param traceIdSet
      * @throws Exception
      */
-    private void analyseServiceRelation(Map<String, String> menus) throws Exception {
+    private void analyseServiceRelation(Set<String> traceIdSet) throws Exception {
 
         int i = 0;
-        for (String key : menus.keySet()) {
+        for (String traceid : traceIdSet) {
 
-            String menuid = key.substring(0, key.indexOf('^'));
-            String traceid = menus.get(key);
             LOG.info("待分析traceid: " + traceid);
 
             List<HashMap<String, Object>> probes = OpsHBaseAPI.getInstance().selectByTraceId(traceid);
             List<HashMap<String, Object>> serviceProbes = new ArrayList<>();
 
-            // 剔除非service的span
+            String menuid = null;
+
             for (HashMap<String, Object> probe : probes) {
                 String probetype =  (String) probe.get("probetype");
                 if ("service".equals(probetype)) {
-                    serviceProbes.add(probe);
+                    serviceProbes.add(probe); // 剔除非service的span
+                } else if ("web".equals(probetype)) {
+                    menuid = (String) probe.get("menuid"); // 找菜单ID
                 }
+
             }
             LOG.info("  剔除非service span后，待分析的服务集合: " + serviceProbes.size() + "个");
 
@@ -115,13 +105,13 @@ public class OpsAnalyse implements Constants {
                         loadServieRelat(pStarttime, pServicename, cServicename, menuid, mainservice);
                         LOG.info(String.format("  记录服务关系数据: %s, 主服务: %s, 子服务: %s, 菜单: %s", pStarttime, pServicename, cServicename, menuid));
                         if (i++ % 1000 == 0) {
-                            HBaseUtils.serviceMapFlushCommits();
+                            HBaseUtils.sinkServiceRelatFlushCommits();
                         }
                     }
                 }
             }
 
-            HBaseUtils.serviceMapFlushCommits();
+            HBaseUtils.sinkServiceRelatFlushCommits();
 
         }
     }
@@ -137,41 +127,55 @@ public class OpsAnalyse implements Constants {
     private void loadServieRelat(String starttime, String pServiceName, String cServiceName, String menuid, Boolean mainservice) throws Exception {
 
         long st = Long.parseLong(starttime);
-        String yyyyMM = DateFormatUtils.format(st, "yyyy-MM");
         String yyyyMMdd = DateFormatUtils.format(st, "yyyy-MM-dd");
-        
-        byte[] dependServiceBytes = Bytes.toBytes(dependService + cServiceName + "|"+ yyyyMMdd);
-        byte[] beDependServiceBytes = Bytes.toBytes(beDependService + pServiceName + "|" + yyyyMMdd);
-        byte[] beDependMenuIdBytes = Bytes.toBytes(beDependMenuId + menuid + "|" + yyyyMMdd);
+        String yyyyMM = yyyyMMdd.substring(0, 6);
+        String yyyy = yyyyMMdd.substring(0, 4);
 
-        // 正向服务依赖
-        Put positivePut = new Put(Bytes.toBytes(pServiceName + "^" + yyyyMM));
-        positivePut.addColumn(CF_RELAT, dependServiceBytes, NULL_BYTES);
-        positivePut.addColumn(CF_RELAT, beDependMenuIdBytes, NULL_BYTES);
-        HBaseUtils.serviceMapPut(positivePut);
+        // 依赖的服务计数器
+        Increment dependServiceIncrement = new Increment(Bytes.toBytes(pServiceName));
+        dependServiceIncrement.addColumn(Bytes.toBytes("dependService"), Bytes.toBytes(cServiceName + "^" + yyyyMMdd), 1);
+        dependServiceIncrement.addColumn(Bytes.toBytes("dependService"), Bytes.toBytes(cServiceName + "^" + yyyyMM), 1);
+        dependServiceIncrement.addColumn(Bytes.toBytes("dependService"), Bytes.toBytes(cServiceName + "^" + yyyy), 1);
+        HBaseUtils.sinkServiceRelatIncrement(dependServiceIncrement);
 
-        // 反向服务依赖
-        Put reversePut = new Put(Bytes.toBytes(cServiceName + "^" + yyyyMM));
-        reversePut.addColumn(CF_RELAT, beDependServiceBytes, Bytes.toBytes("mainservice=" + mainservice));
-        reversePut.addColumn(CF_RELAT, beDependMenuIdBytes, NULL_BYTES);
-        HBaseUtils.serviceMapPut(reversePut);
+        // 被依赖的服务计数器
+        Increment beDependServiceIncrement = new Increment(Bytes.toBytes(cServiceName));
+        beDependServiceIncrement.addColumn(Bytes.toBytes("beDependService"), Bytes.toBytes(pServiceName + "^" + yyyyMMdd), 1);
+        beDependServiceIncrement.addColumn(Bytes.toBytes("beDependService"), Bytes.toBytes(pServiceName + "^" + yyyyMM), 1);
+        beDependServiceIncrement.addColumn(Bytes.toBytes("beDependService"), Bytes.toBytes(pServiceName + "^" + yyyy), 1);
+        if (mainservice) {
+            beDependServiceIncrement.addColumn(Bytes.toBytes("beDependService"), Bytes.toBytes(pServiceName + "^mainservice"), 1); // 为主服务计数器
+        }
+        HBaseUtils.sinkServiceRelatIncrement(beDependServiceIncrement);
+
+        // 被依赖的菜单计数器
+        Increment beDependMenuIdIncrement = new Increment(Bytes.toBytes(pServiceName));
+        beDependMenuIdIncrement.addColumn(Bytes.toBytes("beDependMenuId"), Bytes.toBytes(menuid + "^" + yyyyMMdd), 1);
+        beDependMenuIdIncrement.addColumn(Bytes.toBytes("beDependMenuId"), Bytes.toBytes(menuid + "^" + yyyyMM), 1);
+        beDependMenuIdIncrement.addColumn(Bytes.toBytes("beDependMenuId"), Bytes.toBytes(menuid + "^" + yyyy), 1);
+        HBaseUtils.sinkServiceRelatIncrement(beDependMenuIdIncrement);
 
     }
 
+
     public void start() throws Exception {
 
-        LOG.info("服务地图关系分析进程启动成功!");
+        LOG.info("服务关系分析进程启动完成!");
 
+        int i = 0;
         while (true) {
+
             try {
 
                 long start = System.currentTimeMillis();
 
-                Map<String, String> map = extractAnalyseMenu();
-                analyseServiceRelation(map);
+                Set<String> traceIdSet = extractAnalyseService(); // 考虑根据trace_service表来分析。
+                LOG.info(String.format("开始第%-3d轮分析, 待分析链路共计: %-5d条。", i++, traceIdSet.size()));
+
+                analyseServiceRelation(traceIdSet);
 
                 long cost = System.currentTimeMillis() - start;
-                LOG.info(String.format("分析完成, 共分析菜单: %d项, 耗时: %d ms", map.size(), cost));
+                LOG.info(String.format("第%-3d轮分析完成, 耗时: %d ms", i, cost));
 
                 Thread.sleep(1000 * 1000); // 一千秒分析一次
             } catch (Exception e) {

@@ -54,20 +54,12 @@ public class OpsHBaseAPI implements Constants {
         return instance;
     }
 
-    /**
-     * 根据服务名查询依赖关系
-     *
-     * @param serviceName
-     * @return
-     * @throws IOException
-     */
     public Relation selectRelatByService(String serviceName) throws IOException {
 
         Relation relation = new Relation();
 
-        HTable table = (HTable) connection.getTable(TableName.valueOf(Constants.HT_SERVICE_MAP));
-        String day = DateFormatUtils.format(System.currentTimeMillis(), "yyyy-MM");
-        Get get = new Get(Bytes.toBytes(serviceName + "^" + day));
+        HTable table = (HTable) connection.getTable(TableName.valueOf(Constants.HT_SINK_SERVICE_RELAT));
+        Get get = new Get(Bytes.toBytes(serviceName));
         Result result = table.get(get);
 
         result.rawCells();
@@ -75,7 +67,8 @@ public class OpsHBaseAPI implements Constants {
             String rowkey = new String(CellUtil.cloneRow(cell));
             String family = new String(CellUtil.cloneFamily(cell));
             String column = new String(CellUtil.cloneQualifier(cell));
-            String value = new String(CellUtil.cloneValue(cell));
+            // String value = new String(CellUtil.cloneValue(cell));
+            String value = String.valueOf(Bytes.toLong(CellUtil.cloneValue(cell)));
 
             if (LOG.isInfoEnabled()) {
                 LOG.info("rowkey: " + rowkey);
@@ -84,56 +77,26 @@ public class OpsHBaseAPI implements Constants {
                 LOG.info(" value: " + value);
             }
 
-            if (column.startsWith(dependService)) {
-
+            if (family.equals("dependService")) {
                 Map<String, String> data = new HashMap<>();
-                data.put("dependService", extract(column));
-                data.put("date", extractDate(column));
-
+                data.put("dependService", column);
+                data.put("count", value);
                 relation.getDependService().add(data);
-
-            } else if (column.startsWith(beDependService)) {
-
+            } else if (family.equals("beDependService")) {
                 Map<String, String> data = new HashMap<>();
-                data.put("beDependService", extract(column));
-                data.put("date", extractDate(column));
-                data.put("mainservice", isMainService(value));
-
+                data.put("beDependService", column);
+                data.put("count", value);
                 relation.getBeDependService().add(data);
-
-            } else if (column.startsWith(beDependMenuId)) {
-
+            } else if (family.equals("beDependMenuId")) {
                 Map<String, String> data = new HashMap<>();
-                data.put("beDependMenuId", extract(column));
-                data.put("date", extractDate(column));
-
+                data.put("beDependMenuId", column);
+                data.put("count", value);
                 relation.getBeDependMenuId().add(data);
             }
 
         }
 
         return relation;
-    }
-
-    private static final String extract(String column) {
-        int i = column.indexOf('|');
-        int j = column.indexOf('|', i);
-        return column.substring(i + 1, j);
-    }
-
-    private static final String extractDate(String column) {
-        int i = column.lastIndexOf('|');
-        return column.substring(i + 1);
-    }
-
-    public static final String isMainService(String value) {
-        int i = value.indexOf("mainservice=true");
-        if (-1 != i) {
-            return "true";
-        } else {
-            return "false";
-        }
-
     }
 
     /**

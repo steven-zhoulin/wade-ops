@@ -17,7 +17,7 @@ public class Relation {
     /**
      * 依赖的服务
      *
-     * K1:'dependService', V1: '依赖的服务名' |  K2:'date', V2:'2017-12-10'
+     * K1:'dependService', V1: '依赖的服务名^时间' |  K2:'count', V2:'依赖次数'
      *
      */
     private List<Map<String, String>> dependService;
@@ -25,7 +25,7 @@ public class Relation {
     /**
      * 被什么服务依赖
      *
-     * K1:'beDependService', V1: '被依赖的服务名' |  K2:'date', V2:'2017-12-10' | K3:'mainservice', v3:'true|false'
+     * K1:'beDependService', V1: '被依赖的服务名^[时间|mainservice]' |  K2:'count', V2:'被依赖次数'
      *
      */
     private List<Map<String, String>> beDependService;
@@ -33,7 +33,7 @@ public class Relation {
     /**
      * 被什么菜单依赖
      *
-     * K1:'beDependMenuId', V1: '依赖的菜单名' |  K2:'date', V2:'2017-12-10'
+     * K1:'beDependMenuId', V1: '依赖的菜单名^时间' |  K2:'count', V2:'被依赖次数'
      *
      */
     private List<Map<String, String>> beDependMenuId;

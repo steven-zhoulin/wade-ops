@@ -1,7 +1,5 @@
 package com.wade.ops.harmonius;
 
-import org.apache.hadoop.hbase.util.Bytes;
-
 /**
  * Copyright: (c) 2017 Asiainfo
  *
@@ -16,10 +14,5 @@ public interface Constants {
     String HT_TRACE_SN = "trace_sn";
     String HT_TRACE_SERVICE = "trace_service";
     String HT_SERVICE_MAP = "service_map";
-
-    String dependService = "dependService|";
-    String beDependService = "beDependService|";
-    String beDependMenuId = "beDependMenuId|";
-
-    byte[] NULL_BYTES = Bytes.toBytes("");
+    String HT_SINK_SERVICE_RELAT = "sink_service_relat";
 }
