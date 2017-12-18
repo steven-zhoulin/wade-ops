@@ -66,8 +66,8 @@ public class OpsHBaseAPI implements Constants {
             String rowkey = new String(CellUtil.cloneRow(cell));
             String family = new String(CellUtil.cloneFamily(cell));
             String column = new String(CellUtil.cloneQualifier(cell));
-            // String value = new String(CellUtil.cloneValue(cell));
-            String value = String.valueOf(Bytes.toLong(CellUtil.cloneValue(cell)));
+            long count = Bytes.toLong(CellUtil.cloneValue(cell));
+            String value = String.valueOf(count);
 
             if (LOG.isInfoEnabled()) {
                 LOG.info("rowkey: " + rowkey);
@@ -76,19 +76,31 @@ public class OpsHBaseAPI implements Constants {
                 LOG.info(" value: " + value);
             }
 
+            String[] slice = StringUtils.split(column, '^');
+
             if (family.equals("dependService")) {
                 Map<String, String> data = new HashMap<>();
-                data.put("dependService", column);
+                data.put("dependService", slice[0]);
+                data.put("date", slice[1]);
                 data.put("count", value);
                 relation.getDependService().add(data);
             } else if (family.equals("beDependService")) {
                 Map<String, String> data = new HashMap<>();
-                data.put("beDependService", column);
+                data.put("beDependService", slice[0]);
+                data.put("date", slice[1]);
                 data.put("count", value);
+
+                if ("mainservice".equals(slice[1])) {
+                    data.put("mainservice", count > 0 ? "true" : "false");
+                } else {
+                    data.put("mainservice", "false");
+                }
+
                 relation.getBeDependService().add(data);
             } else if (family.equals("beDependMenuId")) {
                 Map<String, String> data = new HashMap<>();
-                data.put("beDependMenuId", column);
+                data.put("beDependMenuId", slice[0]);
+                data.put("date", slice[1]);
                 data.put("count", value);
                 relation.getBeDependMenuId().add(data);
             }
@@ -97,6 +109,7 @@ public class OpsHBaseAPI implements Constants {
 
         return relation;
     }
+
 
     /**
      * 根据 traceid 查询对应的追逐数据集合

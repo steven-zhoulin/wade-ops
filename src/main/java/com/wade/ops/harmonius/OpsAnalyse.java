@@ -1,6 +1,7 @@
 package com.wade.ops.harmonius;
 
 import com.wade.ops.harmonius.loader.HBaseUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -66,10 +67,8 @@ public class OpsAnalyse implements Constants {
      */
     private void analyseServiceRelation(Set<String> traceIdSet) throws Exception {
 
-        int i = 0;
+        int count = 0;
         for (String traceid : traceIdSet) {
-
-            LOG.info("待分析traceid: " + traceid);
 
             List<HashMap<String, Object>> probes = OpsHBaseAPI.getInstance().selectByTraceId(traceid);
             List<HashMap<String, Object>> serviceProbes = new ArrayList<>();
@@ -85,27 +84,31 @@ public class OpsAnalyse implements Constants {
                 }
 
             }
-            LOG.info("  剔除非service span后，待分析的服务集合: " + serviceProbes.size() + "个");
 
-            List<HashMap<String, Object>> tempProbes = new ArrayList<>();
-            tempProbes.addAll(serviceProbes);
+            // 从最后一个位置往前, 处理掉一个，删掉一个。
+            for (int i = serviceProbes.size() - 1; i >= 0; i--) {
 
-            for (HashMap<String, Object> parent : serviceProbes) {
-
+                Map<String, Object> parent = serviceProbes.remove(i);
                 String pServicename = (String) parent.get("servicename");
                 String pStarttime = (String) parent.get("starttime");
                 Boolean mainservice = (Boolean) parent.get("mainservice");
 
-                for (HashMap<String, Object> child : tempProbes) {
+                for (int j = 0; j < i; j++) {
+                    Map<String, Object> child = serviceProbes.get(j);
                     String cServicename = (String) child.get("servicename");
                     String cStarttime = (String) child.get("starttime");
+                    if (pServicename.equals(cServicename)) {
+                        break; // 自己不依赖自己。
+                    }
+
                     if (pStarttime.compareTo(cStarttime) < 0) {
                         loadServieRelat(pStarttime, pServicename, cServicename, menuid, mainservice);
-                        LOG.info(String.format("  记录服务关系数据: %s, 主服务: %s, 子服务: %s, 菜单: %s", pStarttime, pServicename, cServicename, menuid));
-                        if (i++ % 1000 == 0) {
+                        if (count++ % 10000 == 0) {
                             HBaseUtils.sinkServiceRelatFlushCommits();
+                            LOG.info(String.format("沉淀服务关系数据: %-5d条", count - 1));
                         }
                     }
+
                 }
             }
 
@@ -126,7 +129,7 @@ public class OpsAnalyse implements Constants {
 
         long st = Long.parseLong(starttime);
         String yyyyMMdd = DateFormatUtils.format(st, "yyyy-MM-dd");
-        String yyyyMM = yyyyMMdd.substring(0, 6);
+        String yyyyMM = yyyyMMdd.substring(0, 7);
         String yyyy = yyyyMMdd.substring(0, 4);
 
         // 依赖的服务计数器
@@ -146,12 +149,14 @@ public class OpsAnalyse implements Constants {
         }
         HBaseUtils.sinkServiceRelatIncrement(beDependServiceIncrement);
 
-        // 被依赖的菜单计数器
-        Increment beDependMenuIdIncrement = new Increment(Bytes.toBytes(pServiceName));
-        beDependMenuIdIncrement.addColumn(Bytes.toBytes("beDependMenuId"), Bytes.toBytes(menuid + "^" + yyyyMMdd), 1);
-        beDependMenuIdIncrement.addColumn(Bytes.toBytes("beDependMenuId"), Bytes.toBytes(menuid + "^" + yyyyMM), 1);
-        beDependMenuIdIncrement.addColumn(Bytes.toBytes("beDependMenuId"), Bytes.toBytes(menuid + "^" + yyyy), 1);
-        HBaseUtils.sinkServiceRelatIncrement(beDependMenuIdIncrement);
+        if (StringUtils.isNotBlank(menuid)) {
+            // 被依赖的菜单计数器
+            Increment beDependMenuIdIncrement = new Increment(Bytes.toBytes(pServiceName));
+            beDependMenuIdIncrement.addColumn(Bytes.toBytes("beDependMenuId"), Bytes.toBytes(menuid + "^" + yyyyMMdd), 1);
+            beDependMenuIdIncrement.addColumn(Bytes.toBytes("beDependMenuId"), Bytes.toBytes(menuid + "^" + yyyyMM), 1);
+            beDependMenuIdIncrement.addColumn(Bytes.toBytes("beDependMenuId"), Bytes.toBytes(menuid + "^" + yyyy), 1);
+            HBaseUtils.sinkServiceRelatIncrement(beDependMenuIdIncrement);
+        }
 
     }
 
