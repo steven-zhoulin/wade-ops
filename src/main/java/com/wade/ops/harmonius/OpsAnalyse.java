@@ -73,6 +73,7 @@ public class OpsAnalyse implements Constants {
         for (String traceid : traceIdSet) {
 
             List<HashMap<String, Object>> probes = OpsHBaseAPI.getInstance().selectByTraceId(traceid);
+            LOG.info("traceid: " + traceid + ", 探针数量: " + probes.size());
 
             String menuid = "";
             for (HashMap<String, Object> probe : probes) {
@@ -157,6 +158,10 @@ public class OpsAnalyse implements Constants {
         String yyyy = yyyyMMdd.substring(0, 4);
 
         RelationBuf relationBuf = RELAT_BUFF.get(pServiceName);
+        if (null == relationBuf) {
+            relationBuf = new RelationBuf();
+            RELAT_BUFF.put(pServiceName, relationBuf);
+        }
 
         Map<String, AtomicLong> dependService = relationBuf.getDependService();
         increment(dependService, cServiceName + "^" + yyyyMMdd);
@@ -207,27 +212,33 @@ public class OpsAnalyse implements Constants {
 
             // 依赖的服务计数器
             Increment dependServiceIncrement = new Increment(Bytes.toBytes(servicename));
-            for (String qualifier : dependService.keySet()) {
-                long count = dependService.get(qualifier).get();
-                dependServiceIncrement.addColumn(Bytes.toBytes("dependService"), Bytes.toBytes(qualifier), count);
+            if (dependService.size() > 0) {
+                for (String qualifier : dependService.keySet()) {
+                    long count = dependService.get(qualifier).get();
+                    dependServiceIncrement.addColumn(Bytes.toBytes("dependService"), Bytes.toBytes(qualifier), count);
+                }
+                HBaseUtils.sinkServiceRelatIncrement(dependServiceIncrement);
             }
-            HBaseUtils.sinkServiceRelatIncrement(dependServiceIncrement);
 
             // 被依赖的服务计数器
             Increment beDependServiceIncrement = new Increment(Bytes.toBytes(servicename));
-            for (String qualifier : beDependService.keySet()) {
-                long count = beDependService.get(qualifier).get();
-                beDependServiceIncrement.addColumn(Bytes.toBytes("beDependService"), Bytes.toBytes(qualifier), count);
+            if (beDependService.size() > 0) {
+                for (String qualifier : beDependService.keySet()) {
+                    long count = beDependService.get(qualifier).get();
+                    beDependServiceIncrement.addColumn(Bytes.toBytes("beDependService"), Bytes.toBytes(qualifier), count);
+                }
+                HBaseUtils.sinkServiceRelatIncrement(beDependServiceIncrement);
             }
-            HBaseUtils.sinkServiceRelatIncrement(beDependServiceIncrement);
 
             // 被依赖的菜单计数器
             Increment beDependMenuIdIncrement = new Increment(Bytes.toBytes(servicename));
-            for (String qualifier : beDependMenuId.keySet()) {
-                long count = beDependMenuId.get(qualifier).get();
-                beDependMenuIdIncrement.addColumn(Bytes.toBytes("beDependMenuId"), Bytes.toBytes(qualifier), count);
+            if (beDependMenuId.size() > 0) {
+                for (String qualifier : beDependMenuId.keySet()) {
+                    long count = beDependMenuId.get(qualifier).get();
+                    beDependMenuIdIncrement.addColumn(Bytes.toBytes("beDependMenuId"), Bytes.toBytes(qualifier), count);
+                }
+                HBaseUtils.sinkServiceRelatIncrement(beDependMenuIdIncrement);
             }
-            HBaseUtils.sinkServiceRelatIncrement(beDependMenuIdIncrement);
 
         }
 
