@@ -28,6 +28,8 @@ public class OpsHBaseAPI implements Constants {
 
     private static final Log LOG = LogFactory.getLog(OpsHBaseAPI.class);
 
+    private static final int SIZE_LIMIT = 100;
+
     private static Configuration configuration = null;
     private static Connection connection = null;
     private static OpsHBaseAPI instance = null;
@@ -166,7 +168,7 @@ public class OpsHBaseAPI implements Constants {
             String tid = Bytes.toString(byteValue);
             set.add(tid);
 
-            if (set.size() > 5000) {
+            if (set.size() > SIZE_LIMIT) {
                 break;
             }
         }
@@ -209,7 +211,7 @@ public class OpsHBaseAPI implements Constants {
             byte[] byteValue = r.getValue(Bytes.toBytes("info"), Bytes.toBytes("tid"));
             String tid = Bytes.toString(byteValue);
             set.add(tid);
-            if (set.size() > 5000) {
+            if (set.size() > SIZE_LIMIT) {
                 break;
             }
         }
@@ -252,7 +254,7 @@ public class OpsHBaseAPI implements Constants {
             byte[] byteValue = r.getValue(Bytes.toBytes("info"), Bytes.toBytes("tid"));
             String tid = Bytes.toString(byteValue);
             set.add(tid);
-            if (set.size() > 5000) {
+            if (set.size() > SIZE_LIMIT) {
                 break;
             }
         }
@@ -295,7 +297,7 @@ public class OpsHBaseAPI implements Constants {
             byte[] byteValue = r.getValue(Bytes.toBytes("info"), Bytes.toBytes("tid"));
             String tid = Bytes.toString(byteValue);
             set.add(tid);
-            if (set.size() > 5000) {
+            if (set.size() > SIZE_LIMIT) {
                 break;
             }
         }
@@ -304,6 +306,88 @@ public class OpsHBaseAPI implements Constants {
 
         List<String> rtn = new ArrayList<>();
         rtn.addAll(set);
+
+        return rtn;
+    }
+
+    /**
+     * 多维度查询
+     *
+     * @param dimensions
+     * @param starttime
+     * @param endtime
+     * @return
+     * @throws Exception
+     */
+    public List<Map<String, String>> selectDetailsByAll(Map<String, String> dimensions, String starttime, String endtime) throws Exception {
+
+        List<Map<String, String>> rtn = new ArrayList<>();
+
+        List<String> traceids = selectByAll(dimensions, starttime, endtime);
+        for (String traceid : traceids) {
+            List<HashMap<String, Object>> probes = selectByTraceId(traceid);
+
+            Map<String, String> data = seek(probes);
+            data.put("traceid", traceid);
+            rtn.add(data);
+        }
+
+        return rtn;
+
+    }
+
+    /**
+     * 开始时间，完成时间，耗时，工号，菜单，手机号码，源地址。
+     *
+     * @param probes
+     * @return
+     */
+    private Map<String, String> seek(List<HashMap<String, Object>> probes) {
+
+        String starttime = "";
+        String endtime = "";
+        long costtime = 0;
+        String operid = "";
+        String menuid = "";
+        String clientip = "";
+        String sn = "";
+
+        Map<String, String> rtn = new HashMap<>();
+        for (HashMap<String, Object> probe : probes) {
+
+            String sCosttime = (String) probe.get("costtime");
+            long costtimeTemp = Long.parseLong(sCosttime);
+            if (costtimeTemp > costtime) {
+                costtime = costtimeTemp;
+                starttime = (String) probe.get("starttime");
+                endtime = (String) probe.get("endtime");
+            }
+
+            String probetype = (String) probe.get("probetype");
+
+            if ("app".equals(probetype)) {
+                operid = (String) probe.get("operid");
+                Map<String, String> ext = (Map<String, String>) probe.get("ext");
+                if (null != ext) {
+                    String snTemp = ext.get("SERIAL_NUMBER");
+                    sn = (null != snTemp) ? snTemp : "";
+                }
+            }
+
+            if ("web".equals(probetype)) {
+                menuid = (String) probe.get("menuid");
+                clientip = (String) probe.get("clientip");
+            }
+
+        }
+
+        rtn.put("starttime", starttime);
+        rtn.put("endtime", endtime);
+        rtn.put("costtime", String.valueOf(costtime));
+        rtn.put("operid", operid);
+        rtn.put("menuid", menuid);
+        rtn.put("clientip", clientip);
+        rtn.put("sn", sn);
 
         return rtn;
     }
@@ -421,6 +505,21 @@ public class OpsHBaseAPI implements Constants {
             for (String tid : tids) {
                 System.out.println(tid);
             }
+        } else if (action.equals("selectDetailsByAll")) {
+            Map<String, String> dimensions = new HashMap<>();
+            String queryString = args[1];
+
+            String[] params = StringUtils.split(queryString, '&');
+            for (String kv : params) {
+                String[] x = StringUtils.split(kv, '=');
+                dimensions.put(x[0], x[1]);
+            }
+            System.out.println("dimensions: " + dimensions);
+            List<Map<String, String>> details = api.selectDetailsByAll(dimensions, args[2], args[3]);
+            for (Map<String, String> detail : details) {
+                System.out.println(detail);
+            }
+
         } else if (action.equals("selectRelatByService")) {
             Relation relation = api.selectRelatByService(args[1]);
             System.out.println(relation);

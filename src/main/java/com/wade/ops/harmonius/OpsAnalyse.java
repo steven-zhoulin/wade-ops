@@ -15,6 +15,7 @@ import org.apache.hadoop.hbase.util.Bytes;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Copyright: (c) 2017 Asiainfo
@@ -26,6 +27,8 @@ import java.util.*;
 public class OpsAnalyse implements Constants {
 
     private static final Log LOG = LogFactory.getLog(OpsAnalyse.class);
+
+    private static final Map<String, RelationBuf> RELAT_BUFF = new HashMap<>();
 
     /**
      * 抽取待分析的追踪ID集合
@@ -60,106 +63,178 @@ public class OpsAnalyse implements Constants {
     }
 
     /**
-     * 带计数器功能的服务依赖分析
+     * 分析服务依赖关系
      *
      * @param traceIdSet
      * @throws Exception
      */
     private void analyseServiceRelation(Set<String> traceIdSet) throws Exception {
 
-        int count = 0;
         for (String traceid : traceIdSet) {
 
             List<HashMap<String, Object>> probes = OpsHBaseAPI.getInstance().selectByTraceId(traceid);
-            List<HashMap<String, Object>> serviceProbes = new ArrayList<>();
 
-            String menuid = null;
+            String menuid = "";
+            for (HashMap<String, Object> probe : probes) {
+                String probetype =  (String) probe.get("probetype");
+                if ("web".equals(probetype)) {
+                    menuid = (String) probe.get("menuid"); // 找菜单ID
+                }
+            }
+
+            Map<String, HashMap<String, Object>> idMap = buildIdProbe(probes);
 
             for (HashMap<String, Object> probe : probes) {
                 String probetype =  (String) probe.get("probetype");
                 if ("service".equals(probetype)) {
-                    serviceProbes.add(probe); // 剔除非service的span
-                } else if ("web".equals(probetype)) {
-                    menuid = (String) probe.get("menuid"); // 找菜单ID
-                }
-
-            }
-
-            // 从最后一个位置往前, 处理掉一个，删掉一个。
-            for (int i = serviceProbes.size() - 1; i >= 0; i--) {
-
-                Map<String, Object> parent = serviceProbes.remove(i);
-                String pServicename = (String) parent.get("servicename");
-                String pStarttime = (String) parent.get("starttime");
-                Boolean mainservice = (Boolean) parent.get("mainservice");
-
-                for (int j = 0; j < i; j++) {
-                    Map<String, Object> child = serviceProbes.get(j);
-                    String cServicename = (String) child.get("servicename");
-                    String cStarttime = (String) child.get("starttime");
-                    if (pServicename.equals(cServicename)) {
-                        break; // 自己不依赖自己。
-                    }
-
-                    if (pStarttime.compareTo(cStarttime) < 0) {
-                        loadServieRelat(pStarttime, pServicename, cServicename, menuid, mainservice);
-                        if (count++ % 10000 == 0) {
-                            HBaseUtils.sinkServiceRelatFlushCommits();
-                            LOG.info(String.format("沉淀服务关系数据: %-5d条", count - 1));
-                        }
-                    }
-
+                    String servicename = (String) probe.get("servicename");
+                    String parentid = (String) probe.get("parentid");
+                    traceUpRelationship(servicename, menuid, parentid, idMap); // 根据parentid往上追溯
                 }
             }
-
-            HBaseUtils.sinkServiceRelatFlushCommits();
 
         }
+
+        loadServieRelat();
+
     }
 
     /**
-     * 加载服务依赖
+     * 网上溯源依赖关系
      *
-     * @param starttime 开始时间
-     * @param pServiceName 上级服务名
-     * @param cServiceName 下级服务名
-     * @param mainservice 是否为主服务
+     * @param cServicename
+     * @param menuid
+     * @param parentid
+     * @param idMap
+     * @throws Exception
      */
-    private void loadServieRelat(String starttime, String pServiceName, String cServiceName, String menuid, Boolean mainservice) throws Exception {
+    private void traceUpRelationship(String cServicename, String menuid, String parentid, Map<String, HashMap<String, Object>> idMap) throws Exception {
+
+        HashMap<String, Object> probe = idMap.get(parentid);
+        if (null == probe) {
+            return;
+        }
+
+        String probetype =  (String) probe.get("probetype");
+
+        if ("service".equals(probetype)) {
+
+            String pServicename = (String) probe.get("servicename");
+            String pStarttime = (String) probe.get("starttime");
+            Boolean mainservice = (Boolean) probe.get("mainservice");
+            sinkServiceRelat(pStarttime, pServicename, cServicename, menuid, mainservice);
+
+            String pParentid = (String) probe.get("parentid");
+            traceUpRelationship(pServicename, menuid, pParentid, idMap); // 递归
+
+        }
+
+    }
+
+    /**
+     * 构造 id -> probe 的映射关系
+     *
+     * @param probes
+     * @return
+     */
+    private Map<String, HashMap<String, Object>> buildIdProbe(List<HashMap<String, Object>> probes) {
+
+        Map<String, HashMap<String, Object>> rtn = new HashMap<>();
+
+        for (HashMap<String, Object> probe : probes) {
+            String id = (String) probe.get("id");
+            rtn.put(id, probe);
+        }
+
+        return rtn;
+    }
+
+    private void sinkServiceRelat(String starttime, String pServiceName, String cServiceName, String menuid, Boolean mainservice) {
 
         long st = Long.parseLong(starttime);
         String yyyyMMdd = DateFormatUtils.format(st, "yyyy-MM-dd");
         String yyyyMM = yyyyMMdd.substring(0, 7);
         String yyyy = yyyyMMdd.substring(0, 4);
 
-        // 依赖的服务计数器
-        Increment dependServiceIncrement = new Increment(Bytes.toBytes(pServiceName));
-        dependServiceIncrement.addColumn(Bytes.toBytes("dependService"), Bytes.toBytes(cServiceName + "^" + yyyyMMdd), 1);
-        dependServiceIncrement.addColumn(Bytes.toBytes("dependService"), Bytes.toBytes(cServiceName + "^" + yyyyMM), 1);
-        dependServiceIncrement.addColumn(Bytes.toBytes("dependService"), Bytes.toBytes(cServiceName + "^" + yyyy), 1);
-        HBaseUtils.sinkServiceRelatIncrement(dependServiceIncrement);
+        RelationBuf relationBuf = RELAT_BUFF.get(pServiceName);
 
-        // 被依赖的服务计数器
-        Increment beDependServiceIncrement = new Increment(Bytes.toBytes(cServiceName));
-        beDependServiceIncrement.addColumn(Bytes.toBytes("beDependService"), Bytes.toBytes(pServiceName + "^" + yyyyMMdd), 1);
-        beDependServiceIncrement.addColumn(Bytes.toBytes("beDependService"), Bytes.toBytes(pServiceName + "^" + yyyyMM), 1);
-        beDependServiceIncrement.addColumn(Bytes.toBytes("beDependService"), Bytes.toBytes(pServiceName + "^" + yyyy), 1);
+        Map<String, AtomicLong> dependService = relationBuf.getDependService();
+        increment(dependService, cServiceName + "^" + yyyyMMdd);
+        increment(dependService, cServiceName + "^" + yyyyMM);
+        increment(dependService, cServiceName + "^" + yyyy);
+
+        Map<String, AtomicLong> beDependService =relationBuf.getBeDependService();
+        increment(beDependService, pServiceName + "^" + yyyyMMdd);
+        increment(beDependService, pServiceName + "^" + yyyyMM);
+        increment(beDependService, pServiceName + "^" + yyyy);
         if (mainservice) {
-            beDependServiceIncrement.addColumn(Bytes.toBytes("beDependService"), Bytes.toBytes(pServiceName + "^mainservice"), 1); // 为主服务计数器
+            increment(beDependService, pServiceName + "^" + mainservice);
         }
-        HBaseUtils.sinkServiceRelatIncrement(beDependServiceIncrement);
 
         if (StringUtils.isNotBlank(menuid)) {
-            // 被依赖的菜单计数器
-            Increment beDependMenuIdIncrement = new Increment(Bytes.toBytes(pServiceName));
-            beDependMenuIdIncrement.addColumn(Bytes.toBytes("beDependMenuId"), Bytes.toBytes(menuid + "^" + yyyyMMdd), 1);
-            beDependMenuIdIncrement.addColumn(Bytes.toBytes("beDependMenuId"), Bytes.toBytes(menuid + "^" + yyyyMM), 1);
-            beDependMenuIdIncrement.addColumn(Bytes.toBytes("beDependMenuId"), Bytes.toBytes(menuid + "^" + yyyy), 1);
-            HBaseUtils.sinkServiceRelatIncrement(beDependMenuIdIncrement);
+            Map<String, AtomicLong> beDependMenuId = relationBuf.getBeDependMenuId();
+            increment(beDependMenuId, menuid + "^" + yyyyMMdd);
+            increment(beDependMenuId, menuid + "^" + yyyyMM);
+            increment(beDependMenuId, menuid + "^" + yyyy);
         }
 
     }
 
+    private static final void increment(Map<String, AtomicLong> map, String key) {
+
+        AtomicLong count = map.get(key);
+
+        if (null == count) {
+            count = new AtomicLong(0);
+            map.put(key, count);
+        }
+
+        count.incrementAndGet();
+    }
+
+    /**
+     * 入HBase表
+     *
+     * @throws Exception
+     */
+    private void loadServieRelat() throws Exception {
+
+        for (String servicename : RELAT_BUFF.keySet()) {
+            RelationBuf relationBuf = RELAT_BUFF.get(servicename);
+            Map<String, AtomicLong> dependService = relationBuf.getDependService();
+            Map<String, AtomicLong> beDependService = relationBuf.getBeDependService();
+            Map<String, AtomicLong> beDependMenuId = relationBuf.getBeDependMenuId();
+
+            // 依赖的服务计数器
+            Increment dependServiceIncrement = new Increment(Bytes.toBytes(servicename));
+            for (String qualifier : dependService.keySet()) {
+                long count = dependService.get(qualifier).get();
+                dependServiceIncrement.addColumn(Bytes.toBytes("dependService"), Bytes.toBytes(qualifier), count);
+            }
+            HBaseUtils.sinkServiceRelatIncrement(dependServiceIncrement);
+
+            // 被依赖的服务计数器
+            Increment beDependServiceIncrement = new Increment(Bytes.toBytes(servicename));
+            for (String qualifier : beDependService.keySet()) {
+                long count = beDependService.get(qualifier).get();
+                beDependServiceIncrement.addColumn(Bytes.toBytes("beDependService"), Bytes.toBytes(qualifier), count);
+            }
+            HBaseUtils.sinkServiceRelatIncrement(beDependServiceIncrement);
+
+            // 被依赖的菜单计数器
+            Increment beDependMenuIdIncrement = new Increment(Bytes.toBytes(servicename));
+            for (String qualifier : beDependMenuId.keySet()) {
+                long count = beDependMenuId.get(qualifier).get();
+                beDependMenuIdIncrement.addColumn(Bytes.toBytes("beDependMenuId"), Bytes.toBytes(qualifier), count);
+            }
+            HBaseUtils.sinkServiceRelatIncrement(beDependMenuIdIncrement);
+
+        }
+
+        // 显式提交
+        HBaseUtils.sinkServiceRelatFlushCommits();
+
+    }
 
     public void start() throws Exception {
 
@@ -167,18 +242,18 @@ public class OpsAnalyse implements Constants {
 
         int i = 0;
         while (true) {
-
+            i++;
             try {
 
                 long start = System.currentTimeMillis();
 
                 Set<String> traceIdSet = extractAnalyseService(); // 考虑根据trace_service表来分析。
-                LOG.info(String.format("开始第%-3d轮分析, 待分析链路共计: %-5d条。", i++, traceIdSet.size()));
+                LOG.info(String.format("开始第%d轮分析, 待分析链路共计: %-5d条。", i, traceIdSet.size()));
 
                 analyseServiceRelation(traceIdSet);
 
                 long cost = System.currentTimeMillis() - start;
-                LOG.info(String.format("第%-3d轮分析完成, 耗时: %d ms", i, cost));
+                LOG.info(String.format("第%d轮分析完成, 耗时: %d ms", i, cost));
 
                 Thread.sleep(1000 * 1000); // 一千秒分析一次
             } catch (Exception e) {
