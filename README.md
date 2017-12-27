@@ -18,7 +18,8 @@ $ mvn clean install -Dmaven.test.skip
 $ mvn compile
 $ mvn jar
 $ cd ~/bin
-$ ./start-crawler.sh
+$ ./start-load.sh
+$ ./start-analyze.sh
 ```
 
 ### 表模型设计
@@ -28,7 +29,7 @@ $ ./start-crawler.sh
 ```html
 -- 建表语句:
 create 'trace', 'span'
-alter  'trace', {NAME => 'span', TTL => '259200'}
+alter  'trace', {NAME => 'span', TTL => '15552000'}
 ```
 ```html
 -- 表结构示例:    
@@ -44,7 +45,7 @@ put 'trace', 'web-74138c1248e44ca5b1ac7991b7635711', 'span:dao|74138c1248e44ca5b
 ```html
 -- 建表语句:
 create 'trace_menu', 'info'
-alter  'trace_menu', {NAME => 'info', TTL => '259200'}
+alter  'trace_menu', {NAME => 'info', TTL => '15552000'}
 ```
 
 ```html
@@ -61,7 +62,7 @@ put 'trace_menu', 'CRM0001^1508729999004', 'web-74138c1248e44ca5b1ac7991b7635715
 ```html
 -- 建表语句:
 create 'trace_operid', 'info'
-alter  'trace_operid', {NAME => 'info', TTL => '259200'}
+alter  'trace_operid', {NAME => 'info', TTL => '15552000'}
 ```
 
 ```html
@@ -78,7 +79,7 @@ put 'trace_operid', 'SUPERUSR^201710201430', 'web-74138c1248e44ca5b1ac7991b76357
 ```html
 -- 建表语句:
 create 'trace_sn', 'info'
-alter  'trace_sn', {NAME => 'info', TTL => '259200'}
+alter  'trace_sn', {NAME => 'info', TTL => '15552000'}
 ```
 
 ```html
@@ -95,7 +96,7 @@ put 'trace_sn', '13007318123^201710201430', 'web-74138c1248e44ca5b1ac7991b763571
 ```html
 -- 建表语句：
 create 'trace_service', 'info'
-alter  'trace_service', {NAME => 'info', TTL => '259200'}
+alter  'trace_service', {NAME => 'info', TTL => '15552000'}
 ```
 
 ```html
@@ -108,33 +109,10 @@ put 'trace_service', 'SVCNAME1^201710201430', 'web-74138c1248e44ca5b1ac7991b7635
 put 'trace_service', 'SVCNAME1^201710201430', 'web-74138c1248e44ca5b1ac7991b7635715'
 ```
 
-
-#### service_map 服务地图
-```html
--- 建表语句:
-create 'service_map', 'relat'
-alter  'service_map', {NAME => 'relat', TTL => '259200'}
-```
-
-```html
--- 示例:
-        表名               rowkey           relat:positive   'relat:reverse'     
-put 'service_map', 'servicename0^20171020', 'servicename1', 'servicename9'
-put 'service_map', 'servicename0^20171020', 'servicename2', 'servicename3'
-put 'service_map', 'servicename0^20171020', 'servicename3', 'servicename1'
-put 'service_map', 'servicename0^20171020', 'servicename4', 'servicename2'
-put 'service_map', 'servicename0^20171020', 'servicename5', 'servicename7'
-```
-
 #### service_map_menu 服务菜单地图，从服务依赖关系，找到对应的菜单。
 ```html
-create 'service_map_menu', 'relat'
-alter  'service_map_menu', {NAME => 'relat', TTL => '25920'}
-```
-
-```html
--- 示例:
-put 'service_map_menu', 'servicename0^servicename1^20171020^BIL0011', 'relat:menu', ''
-put 'service_map_menu', 'servicename0^servicename1^20171020^BIL0012', 'relat:menu', ''
-put 'service_map_menu', 'servicename0^servicename2^20171020^BIL0011', 'relat:menu', ''
+create 'sink_service_relat', 'dependService', 'beDependService', 'beDependMenuId'
+alter  'sink_service_relat', {NAME => 'dependService', TTL => '259200'}
+alter  'sink_service_relat', {NAME => 'beDependService', TTL => '259200'}
+alter  'sink_service_relat', {NAME => 'beDependMenuId', TTL => '259200'}
 ```
