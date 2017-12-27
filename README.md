@@ -109,7 +109,7 @@ put 'trace_service', 'SVCNAME1^201710201430', 'web-74138c1248e44ca5b1ac7991b7635
 put 'trace_service', 'SVCNAME1^201710201430', 'web-74138c1248e44ca5b1ac7991b7635715'
 ```
 
-#### service_map_menu 服务菜单地图，从服务依赖关系，找到对应的菜单。
+#### sink_service_relat 服务菜单地图，从服务依赖关系，找到对应的菜单。
 ```html
 create 'sink_service_relat', 'dependService', 'beDependService', 'beDependMenuId'
 alter  'sink_service_relat', {NAME => 'dependService', TTL => '259200'}
