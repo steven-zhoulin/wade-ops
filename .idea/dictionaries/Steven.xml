@@ -1,6 +1,7 @@
 <component name="ProjectDictionaryState">
   <dictionary name="Steven">
     <words>
+      <w>bizid</w>
       <w>bomc</w>
       <w>clientip</w>
       <w>endtime</w>
@@ -18,6 +19,8 @@
       <w>starttime</w>
       <w>stoprow</w>
       <w>traceid</w>
+      <w>traceids</w>
+      <w>yyyy</w>
     </words>
   </dictionary>
 </component>

@@ -205,7 +205,6 @@ public class OpsHBaseAPI implements Constants {
         scan.setStartRow(Bytes.toBytes(startrow));
         scan.setStopRow(Bytes.toBytes(stoprow));
 
-        int i = 0;
         ResultScanner rs = table.getScanner(scan);
         for (Result r : rs) {
             byte[] byteValue = r.getValue(Bytes.toBytes("info"), Bytes.toBytes("tid"));
@@ -248,7 +247,6 @@ public class OpsHBaseAPI implements Constants {
         scan.setStartRow(Bytes.toBytes(startrow));
         scan.setStopRow(Bytes.toBytes(stoprow));
 
-        int i = 0;
         ResultScanner rs = table.getScanner(scan);
         for (Result r : rs) {
             byte[] byteValue = r.getValue(Bytes.toBytes("info"), Bytes.toBytes("tid"));
@@ -291,7 +289,6 @@ public class OpsHBaseAPI implements Constants {
         scan.setStartRow(Bytes.toBytes(startrow));
         scan.setStopRow(Bytes.toBytes(stoprow));
 
-        int i = 0;
         ResultScanner rs = table.getScanner(scan);
         for (Result r : rs) {
             byte[] byteValue = r.getValue(Bytes.toBytes("info"), Bytes.toBytes("tid"));
@@ -351,6 +348,7 @@ public class OpsHBaseAPI implements Constants {
         String menuid = "";
         String clientip = "";
         String sn = "";
+        String bizid = "";
 
         Map<String, String> rtn = new HashMap<>();
         for (HashMap<String, Object> probe : probes) {
@@ -367,16 +365,31 @@ public class OpsHBaseAPI implements Constants {
 
             if ("app".equals(probetype)) {
                 operid = (String) probe.get("operid");
-                Map<String, String> ext = (Map<String, String>) probe.get("ext");
-                if (null != ext) {
-                    String snTemp = ext.get("SERIAL_NUMBER");
-                    sn = (null != snTemp) ? snTemp : "";
+                if (StringUtils.isBlank(sn)) {
+                    Map<String, String> ext = (Map<String, String>) probe.get("ext");
+                    if (null != ext) {
+                        String snTemp = ext.get("SERIAL_NUMBER");
+                        sn = (null != snTemp) ? snTemp : "";
+                    }
                 }
             }
 
             if ("web".equals(probetype)) {
                 menuid = (String) probe.get("menuid");
                 clientip = (String) probe.get("clientip");
+
+                if (StringUtils.isBlank(sn)) {
+                    Map<String, String> ext = (Map<String, String>) probe.get("ext");
+                    if (null != ext) {
+                        String snTemp = ext.get("SERIAL_NUMBER");
+                        sn = (null != snTemp) ? snTemp : "";
+                    }
+                }
+            }
+
+            String bizidTemp = (String) probe.get("bizid");
+            if (StringUtils.isNotBlank(bizidTemp)) {
+                bizid = bizidTemp;
             }
 
         }
@@ -388,6 +401,7 @@ public class OpsHBaseAPI implements Constants {
         rtn.put("menuid", menuid);
         rtn.put("clientip", clientip);
         rtn.put("sn", sn);
+        rtn.put("bizid", bizid);
 
         return rtn;
     }

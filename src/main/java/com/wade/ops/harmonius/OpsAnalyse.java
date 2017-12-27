@@ -73,7 +73,10 @@ public class OpsAnalyse implements Constants {
         for (String traceid : traceIdSet) {
 
             List<HashMap<String, Object>> probes = OpsHBaseAPI.getInstance().selectByTraceId(traceid);
-            LOG.info("traceid: " + traceid + ", 探针数量: " + probes.size());
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("traceid: " + traceid + ", 探针数量: " + probes.size());
+            }
 
             String menuid = "";
             for (HashMap<String, Object> probe : probes) {
@@ -152,32 +155,45 @@ public class OpsAnalyse implements Constants {
 
     private void sinkServiceRelat(String starttime, String pServiceName, String cServiceName, String menuid, Boolean mainservice) {
 
+        if (pServiceName.equals(cServiceName)) { // 同名服务没有依赖关系
+            return;
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("pServiceName: " + pServiceName + ", cServiceName: " + cServiceName);
+        }
+
         long st = Long.parseLong(starttime);
         String yyyyMMdd = DateFormatUtils.format(st, "yyyy-MM-dd");
         String yyyyMM = yyyyMMdd.substring(0, 7);
         String yyyy = yyyyMMdd.substring(0, 4);
 
-        RelationBuf relationBuf = RELAT_BUFF.get(pServiceName);
-        if (null == relationBuf) {
-            relationBuf = new RelationBuf();
-            RELAT_BUFF.put(pServiceName, relationBuf);
+        RelationBuf pRelationBuf = RELAT_BUFF.get(pServiceName);
+        if (null == pRelationBuf) {
+            pRelationBuf = new RelationBuf();
+            RELAT_BUFF.put(pServiceName, pRelationBuf);
         }
 
-        Map<String, AtomicLong> dependService = relationBuf.getDependService();
+        Map<String, AtomicLong> dependService = pRelationBuf.getDependService();
         increment(dependService, cServiceName + "^" + yyyyMMdd);
         increment(dependService, cServiceName + "^" + yyyyMM);
         increment(dependService, cServiceName + "^" + yyyy);
 
-        Map<String, AtomicLong> beDependService =relationBuf.getBeDependService();
+        RelationBuf cRelationBuf = RELAT_BUFF.get(cServiceName);
+        if (null == cRelationBuf) {
+            cRelationBuf = new RelationBuf();
+            RELAT_BUFF.put(cServiceName, cRelationBuf);
+        }
+        Map<String, AtomicLong> beDependService = cRelationBuf.getBeDependService();
         increment(beDependService, pServiceName + "^" + yyyyMMdd);
         increment(beDependService, pServiceName + "^" + yyyyMM);
         increment(beDependService, pServiceName + "^" + yyyy);
         if (mainservice) {
-            increment(beDependService, pServiceName + "^" + mainservice);
+            increment(beDependService, pServiceName + "^mainservice");
         }
 
         if (StringUtils.isNotBlank(menuid)) {
-            Map<String, AtomicLong> beDependMenuId = relationBuf.getBeDependMenuId();
+            Map<String, AtomicLong> beDependMenuId = cRelationBuf.getBeDependMenuId();
             increment(beDependMenuId, menuid + "^" + yyyyMMdd);
             increment(beDependMenuId, menuid + "^" + yyyyMM);
             increment(beDependMenuId, menuid + "^" + yyyy);
@@ -244,6 +260,7 @@ public class OpsAnalyse implements Constants {
 
         // 显式提交
         HBaseUtils.sinkServiceRelatFlushCommits();
+        RELAT_BUFF.clear();
 
     }
 
