@@ -403,6 +403,14 @@ public class OpsHBaseAPI implements Constants {
         return rtn;
     }
 
+    /**
+     * 从探针里绑定参数
+     *
+     * @param probe
+     * @param key
+     * @param defvalue
+     * @return
+     */
     private static final String get(HashMap<String, Object> probe, String key, String defvalue) {
 
         String value = (String) probe.get(key);
@@ -459,8 +467,6 @@ public class OpsHBaseAPI implements Constants {
         if (rtn.size() > 500) {
             rtn = rtn.subList(0, 500);
         }
-
-        LOG.info("OpsHBaseAPI.selectByAll(): return: " + rtn);
 
         return rtn;
     }
