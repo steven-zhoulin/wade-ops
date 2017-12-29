@@ -28,7 +28,7 @@ public class OpsHBaseAPI implements Constants {
 
     private static final Log LOG = LogFactory.getLog(OpsHBaseAPI.class);
 
-    private static final int SIZE_LIMIT = 100;
+    private static final int SIZE_LIMIT = 1000;
 
     private static Configuration configuration = null;
     private static Connection connection = null;
@@ -364,7 +364,6 @@ public class OpsHBaseAPI implements Constants {
             String probetype = (String) probe.get("probetype");
 
             if ("app".equals(probetype)) {
-                operid = (String) probe.get("operid");
                 if (StringUtils.isBlank(sn)) {
                     Map<String, String> ext = (Map<String, String>) probe.get("ext");
                     if (null != ext) {
@@ -387,10 +386,8 @@ public class OpsHBaseAPI implements Constants {
                 }
             }
 
-            String bizidTemp = (String) probe.get("bizid");
-            if (StringUtils.isNotBlank(bizidTemp)) {
-                bizid = bizidTemp;
-            }
+            operid = get(probe, "operid", operid);
+            bizid = get(probe, "bizid", bizid);
 
         }
 
@@ -404,6 +401,17 @@ public class OpsHBaseAPI implements Constants {
         rtn.put("bizid", bizid);
 
         return rtn;
+    }
+
+    private static final String get(HashMap<String, Object> probe, String key, String defvalue) {
+
+        String value = (String) probe.get(key);
+
+        if (StringUtils.isNotBlank(value)) {
+            return value;
+        }
+
+        return defvalue;
     }
 
     /**
@@ -421,6 +429,8 @@ public class OpsHBaseAPI implements Constants {
         String operid = dimensions.get("operid");
         String sn = dimensions.get("sn");
         String servicename = dimensions.get("servicename");
+
+        LOG.info("OpsHBaseAPI.selectByAll(): param dimensions: " + dimensions);
 
         Set<String> traceSet = new HashSet<>();
         if (StringUtils.isNotBlank(menuid)) {
@@ -445,6 +455,13 @@ public class OpsHBaseAPI implements Constants {
 
         List<String> rtn = new ArrayList<>();
         rtn.addAll(traceSet);
+
+        if (rtn.size() > 500) {
+            rtn = rtn.subList(0, 500);
+        }
+
+        LOG.info("OpsHBaseAPI.selectByAll(): return: " + rtn);
+
         return rtn;
     }
 
@@ -460,7 +477,9 @@ public class OpsHBaseAPI implements Constants {
         set.addAll(list);
 
         if (0 == traceSet.size()) {
-            traceSet.addAll(set);
+            if (0 != set.size()) {
+                traceSet.addAll(set);
+            }
         } else {
             traceSet.retainAll(set);
         }
