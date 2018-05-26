@@ -433,16 +433,17 @@ public class OpsHBaseAPI implements Constants {
      */
     public List<String> selectByAll(Map<String, String> dimensions, String starttime, String endtime) throws Exception {
 
-        String menuid = dimensions.get("menuid");
-        String operid = dimensions.get("operid");
         String sn = dimensions.get("sn");
+        String operid = dimensions.get("operid");
+        String menuid = dimensions.get("menuid");
         String servicename = dimensions.get("servicename");
 
         LOG.info("OpsHBaseAPI.selectByAll(): param dimensions: " + dimensions);
 
         Set<String> traceSet = new HashSet<>();
-        if (StringUtils.isNotBlank(menuid)) {
-            List<String> list = selectByMenuId(menuid, starttime, endtime);
+
+        if (StringUtils.isNotBlank(sn)) {
+            List<String> list = selectBySn(sn, starttime, endtime);
             intersection(traceSet, list);
         }
 
@@ -451,8 +452,8 @@ public class OpsHBaseAPI implements Constants {
             intersection(traceSet, list);
         }
 
-        if (StringUtils.isNotBlank(sn)) {
-            List<String> list = selectBySn(sn, starttime, endtime);
+        if (StringUtils.isNotBlank(menuid)) {
+            List<String> list = selectByMenuId(menuid, starttime, endtime);
             intersection(traceSet, list);
         }
 

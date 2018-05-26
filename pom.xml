@@ -4,11 +4,10 @@
 
     <groupId>com.wade</groupId>
     <artifactId>wade-ops</artifactId>
-    <version>1.0</version>
+    <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>ops</name>
-    <url>http://maven.apache.org</url>
 
     <properties>
         <finalName>wade-ops</finalName>
@@ -55,6 +54,13 @@
     </build>
 
     <dependencies>
+
+        <dependency>
+            <groupId>com.wade</groupId>
+            <artifactId>wade-database</artifactId>
+            <version>5.5.0</version>
+        </dependency>
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
