@@ -7,7 +7,7 @@ import java.security.SecureRandom;
 import java.util.*;
 
 public class Test {
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) {
 
 		System.out.println(TripleDES.decrypt("C9PtQscB3jfkowKZaZ3kmA=="));
 

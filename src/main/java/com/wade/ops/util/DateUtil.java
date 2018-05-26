@@ -78,7 +78,7 @@ public final class DateUtil {
         return date.getTime();
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         // System.out.println(parse("2017-10-23 11:39:59"));
         // System.out.println(parse("2017-10-23 11:40:00"));
         System.out.println(DateFormatUtils.format(Long.parseLong("1508935934182"), "yyyy-MM-dd HH:mm:ss"));

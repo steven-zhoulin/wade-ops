@@ -36,8 +36,8 @@ public class OpsHBaseAPI implements Constants {
 
     private OpsHBaseAPI() {}
 
-    public Connection getConnection() throws IOException {
-        return this.connection;
+    public Connection getConnection() {
+        return connection;
     }
 
     /**

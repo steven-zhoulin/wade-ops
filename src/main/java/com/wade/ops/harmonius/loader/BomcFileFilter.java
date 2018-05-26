@@ -22,11 +22,8 @@ public class BomcFileFilter implements FilenameFilter {
 
     @Override
     public boolean accept(File dir, String filename) {
-        if (filename.startsWith("bomc.") && filename.endsWith(timestamp + ".dat")) {
-            return true;
-        }
+        return filename.startsWith("bomc.") && filename.endsWith(timestamp + ".dat");
 
-        return false;
     }
 
 }

@@ -60,7 +60,7 @@ public class Bootstrap {
 
         URLClassLoader loader = (URLClassLoader) Thread.currentThread().getContextClassLoader();
         Class<URLClassLoader> loaderClass = URLClassLoader.class;
-        Method method = loaderClass.getDeclaredMethod("addURL", new Class[] { URL.class });
+        Method method = loaderClass.getDeclaredMethod("addURL", URL.class);
         method.setAccessible(true);
 
         File[] files = startJarDirectory.listFiles();

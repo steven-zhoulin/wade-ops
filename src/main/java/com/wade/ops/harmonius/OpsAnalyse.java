@@ -110,9 +110,8 @@ public class OpsAnalyse implements Constants {
      * @param menuid
      * @param parentid
      * @param idMap
-     * @throws Exception
      */
-    private void traceUpRelationship(String cServicename, String menuid, String parentid, Map<String, HashMap<String, Object>> idMap) throws Exception {
+    private void traceUpRelationship(String cServicename, String menuid, String parentid, Map<String, HashMap<String, Object>> idMap) {
 
         HashMap<String, Object> probe = idMap.get(parentid);
         if (null == probe) {
@@ -216,9 +215,8 @@ public class OpsAnalyse implements Constants {
     /**
      * 入HBase表
      *
-     * @throws Exception
      */
-    private void loadServieRelat() throws Exception {
+    private void loadServieRelat() {
 
         for (String servicename : RELAT_BUFF.keySet()) {
             RelationBuf relationBuf = RELAT_BUFF.get(servicename);
@@ -264,7 +262,7 @@ public class OpsAnalyse implements Constants {
 
     }
 
-    public void start() throws Exception {
+    public void start() {
 
         LOG.info("服务关系分析进程启动完成!");
 
